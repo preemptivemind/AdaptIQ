@@ -119,6 +119,13 @@ body::before{
 .choice.selected{border-color:var(--ink);background:#f0f1f8}
 .choice-letter{width:30px;height:30px;border-radius:50%;background:var(--border);display:flex;align-items:center;justify-content:center;font-size:.78rem;font-weight:700;flex-shrink:0;transition:all .18s}
 .choice.selected .choice-letter{background:var(--ink);color:#fff}
+/* Live test choice buttons */
+.choice-btn{display:flex;align-items:center;gap:12px;padding:12px 16px;border:2px solid var(--border);border-radius:12px;cursor:pointer;transition:all .18s;background:var(--card-bg);text-align:left;font-size:.93rem;font-family:'DM Sans',sans-serif;color:var(--ink);line-height:1.5;width:100%;justify-content:flex-start}
+.choice-btn:disabled{cursor:not-allowed}
+.choice-btn:not(.selected):not(:disabled):hover{border-color:#b0b8d4;background:#f5f7ff;transform:translateX(3px)}
+.choice-btn.selected{border-color:var(--ink);background:#f0f1f8}
+.choice-btn.correct{border-color:#22c55e;background:rgba(34,197,86,.08);color:#166534}
+.choice-btn.wrong{border-color:#ef4444;background:rgba(239,68,68,.08);color:#7f1d1d}
 .q-footer{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
 .change-hint{font-size:.82rem;color:var(--muted);font-style:italic}
 
@@ -1322,6 +1329,20 @@ const QBANK = {
 const QUOTA = {
   math:    {algebra:15, numbers:15, statistics:15, geometry:15},
   reading: {comprehension_fiction:15, comprehension_nonfiction:15, vocabulary:15}
+};
+
+const DOMAIN_DEFS = {
+  math: [
+    {key:'algebra',label:'Algebra & Calculus',icon:'∑'},
+    {key:'numbers',label:'Numbers',icon:'#'},
+    {key:'statistics',label:'Statistics',icon:'📊'},
+    {key:'geometry',label:'Geometry',icon:'📐'}
+  ],
+  reading: [
+    {key:'comprehension_fiction',label:'Fiction Comprehension',icon:'📚'},
+    {key:'comprehension_nonfiction',label:'Non-Fiction Comprehension',icon:'📰'},
+    {key:'vocabulary',label:'Vocabulary',icon:'📝'}
+  ]
 };
 
 // ═══════════════════════════════════════════════════════════════════
