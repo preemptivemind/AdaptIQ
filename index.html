@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -282,21 +283,7 @@ body::before{
     <p class="page1-sub">Choose a subject and your current grade level.</p>
 
     <!-- Resume banner — shown only when a saved session exists -->
-    <div id="resume-banner" style="display:none">
-      <div class="resume-card">
-        <div class="resume-info">
-          <span class="resume-icon" id="resume-icon">➕</span>
-          <div>
-            <div class="resume-title" id="resume-title">Resume test</div>
-            <div class="resume-sub" id="resume-sub">Continue where you left off</div>
-          </div>
-        </div>
-        <div class="resume-actions">
-          <button class="btn btn-primary resume-btn" id="btn-resume" onclick="resumeTest()">Resume <span>→</span></button>
-          <button class="btn-ghost resume-discard" onclick="discardSave()">Discard</button>
-        </div>
-      </div>
-    </div>
+    <div id="resume-banner-list"></div>
 
     <div id="live-resume-banner" style="display:none;margin-bottom:16px">
       <div class="resume-card" style="border-left:4px solid #ff3b5c">
@@ -715,7 +702,7 @@ const QBANK = {
     {grade:12,ccss:'HSF-TF.C.8',domain:'algebra',diff:'hard',text:'In triangle ABC, a = 7, b = 10, C = 45°. Using the cosine rule, what is c² (to the nearest whole)?',choices:['45','55','65','51'],answer:3},
     {grade:9,ccss:'HSG-CO.A.5',domain:'geometry',diff:'easy',text:'A point is rotated 180° about the origin. If the original point is (3, −2), where does it land?',choices:['(3, 2)','(2, −3)','(2, 3)','(−3, 2)'],answer:3},
     {grade:8,ccss:'8.G.C.9g',domain:'geometry',diff:'medium',text:'A sphere fits exactly inside a cube with side length 6 cm. What is the sphere’s volume? (π ≈ 3.14)',choices:['904.32 cm³','150.72 cm³','113.04 cm³','339.12 cm³'],answer:1},
-    {grade:8,ccss:'8.G.C.9',domain:'geometry',diff:'medium',text:'A sphere has radius 6 cm. What is its surface area? (SA = 4πr², π ≈ 3.14)',choices:['75.36 cm²','150.72 cm²','904.32 cm²','452.16 cm²'],answer:3},
+    {grade:8,ccss:'8.G.C.9',domain:'geometry',diff:'medium',text:'A sphere has radius 6 cm. What is its surface area? (π ≈ 3.14)',choices:['75.36 cm²','150.72 cm²','904.32 cm²','452.16 cm²'],answer:3},
     {grade:6,ccss:'6.G.A.4',domain:'geometry',diff:'easy',text:'A net for a rectangular prism has how many rectangles?',choices:['4','8','2','6'],answer:3},
     {grade:6,ccss:'6.G.A.2',domain:'geometry',diff:'easy',text:'A rectangular prism has dimensions 3 cm × 4 cm × 5 cm. What is its total surface area?',choices:['60 cm²','70 cm²','80 cm²','94 cm²'],answer:3},
     {grade:3,ccss:'3.MD.B.3',domain:'statistics',diff:'easy',text:'A bar chart shows Mon=6, Tue=9, Wed=4. Which day had the fewest items?',choices:['Monday','Tuesday','Both the same','Wednesday'],answer:3},
@@ -742,7 +729,7 @@ const QBANK = {
     {grade:10,ccss:'HSS-MD.A.2',domain:'statistics',diff:'easy',text:'A bag contains 4 red tokens, 6 blue tokens, and 2 green tokens. One token is drawn at random. What is P(green)?',choices:['1/4','1/5','2/3','1/6'],answer:3},
     {grade:7,ccss:'7.G.B.4',domain:'geometry',diff:'medium',text:'A circle has radius 7 cm. What is its area? (π ≈ 3.14).',choices:['148.5 cm²','144 cm²','157.08 cm²','153.86 cm²'],answer:3},
     {grade:8,ccss:'8.G.C.9d',domain:'geometry',diff:'hard',text:'A cone has radius 3 cm and height 4 cm. What is its volume? (π ≈ 3.14)',choices:['25.12 cm³','50.24 cm³','150.72 cm³','37.68 cm³'],answer:3},
-    {grade:8,ccss:'8.G.C.9b',domain:'geometry',diff:'medium',text:'A sphere has radius 3 cm. What is its volume? (V = 4/3πr³, π ≈ 3.14)',choices:['56.52 cm³','37.68 cm³','113.04 cm³','150.72 cm³'],answer:2},
+    {grade:8,ccss:'8.G.C.9b',domain:'geometry',diff:'medium',text:'A sphere has radius 3 cm. What is its volume? (π ≈ 3.14)',choices:['56.52 cm³','37.68 cm³','113.04 cm³','150.72 cm³'],answer:2},
     {grade:8,ccss:'8.G.C.9e',domain:'geometry',diff:'easy',text:'A cylinder has radius 4 cm and height 5 cm. What is its volume? (π ≈ 3.14)',choices:['125.6 cm³','62.8 cm³','502.4 cm³','251.2 cm³'],answer:3},
     {grade:6,ccss:'6.G.A.2',domain:'geometry',diff:'easy',text:'A rectangular prism has dimensions 3 cm × 4 cm × 5 cm. What is its total surface area?',choices:['60 cm²','70 cm²','80 cm²','94 cm²'],answer:3},
     {grade:10,ccss:'HSF-TF.A.2',domain:'algebra',diff:'medium',text:'In a right triangle, sin θ = opposite/hypotenuse. If opposite = 5 and hypotenuse = 13, what is cos θ?',choices:['5/12','5/13','13/12','12/13'],answer:3},
@@ -813,7 +800,7 @@ const QBANK = {
     {grade:0,ccss:'K.G.B.4',domain:'geometry',diff:'easy',text:'Which shape has no corners?',choices:['Square','Triangle','Rectangle','Circle'],answer:3},
     {grade:1,ccss:'1.G.A.2',domain:'geometry',diff:'medium',text:'Which solid shape looks like a can?',choices:['Cube','Sphere','Cone','Cylinder'],answer:3},
     {grade:1,ccss:'1.G.A.3',domain:'geometry',diff:'hard',text:'A circle is folded in half. What shape is each half?',choices:['Rectangle','Triangle','Square','Semicircle'],answer:3},
-    {grade:8,ccss:'8.G.C.9',domain:'geometry',diff:'hard',text:'A sphere has radius 3 cm. What is its volume? (V = 4/3πr³, π ≈ 3.14)',choices:['56.52 cm³','37.68 cm³','113.04 cm³','150.72 cm³'],answer:2},
+    {grade:8,ccss:'8.G.C.9',domain:'geometry',diff:'hard',text:'A sphere has radius 3 cm. What is its volume? (π ≈ 3.14)',choices:['56.52 cm³','37.68 cm³','113.04 cm³','150.72 cm³'],answer:2},
     {grade:8,ccss:'8.NS.A.1',domain:'numbers',diff:'easy',text:'Which of the following is an irrational number?',choices:['0.75','4/9','√9','√2'],answer:3},
     {grade:8,ccss:'8.NS.A.2',domain:'numbers',diff:'medium',text:'Between which two consecutive integers does √50 lie?',choices:['6 and 7','5 and 6','8 and 9','7 and 8'],answer:3},
     {grade:9,ccss:'HSN-RN.A.2',domain:'numbers',diff:'easy',text:'Simplify: 27^(2/3)',choices:['3','18','6','9'],answer:3},
@@ -1992,13 +1979,13 @@ function endTest(){
     };
     await saveResult(snapshot);
   })();
-  clearSave();
+  clearSave(selectedSubject, selectedGrade);
   setTimeout(()=>{ringFill.style.strokeDashoffset=408.41-(pct/100)*408.41;},400);
   let cur=0;const step=pct/40;
   const counter=setInterval(()=>{cur=Math.min(cur+step,pct);document.getElementById('result-pct').textContent=Math.round(cur)+'%';if(cur>=pct)clearInterval(counter);},30);
 }
 
-function retakeTest(){document.getElementById('progress-bar-wrap').style.display='none';clearSave();beginTest();}
+function retakeTest(){document.getElementById('progress-bar-wrap').style.display='none';clearSave(selectedSubject,selectedGrade);beginTest();}
 
 // ═══════════════════════════════════════════════════════════════════
 //  LIVE TEST MODE
@@ -2358,7 +2345,7 @@ function goToPage1(){
 //  PERSIST — storage abstraction: window.storage (Claude) → localStorage fallback
 // ═══════════════════════════════════════════════════════════════════
 const LIVE_KEY='adaptiq-live';
-const SAVE_KEY='adaptiq-session';
+const SAVE_KEY_PREFIX='adaptiq-session-';
 const RESULTS_KEY='adaptiq-results';
 
 // Unified storage API: tries window.storage first, falls back to localStorage
@@ -2374,10 +2361,22 @@ const store={
   },
   async delete(key){
     try{ localStorage.removeItem(key); }catch(e){}
+  },
+  async keys(){
+    try{
+      const all=[];
+      for(let i=0;i<localStorage.length;i++) all.push(localStorage.key(i));
+      return all;
+    }catch(e){ return []; }
   }
 };
 
+function sessionKey(subject, grade){
+  return SAVE_KEY_PREFIX + subject + '-' + grade;
+}
+
 async function saveSession(){
+  const key = sessionKey(selectedSubject, selectedGrade);
   const state={
     selectedSubject, selectedGrade,
     qIndex, correctCount, wrongCount,
@@ -2388,20 +2387,37 @@ async function saveSession(){
     TOTAL_Q,
     savedAt: Date.now()
   };
-  await store.set(SAVE_KEY, JSON.stringify(state));
+  await store.set(key, JSON.stringify(state));
 }
 
-async function loadSession(){
+async function loadSession(subject, grade){
   try{
-    const res=await store.get(SAVE_KEY);
+    const key = sessionKey(subject, grade);
+    const res=await store.get(key);
     if(!res) return null;
     return JSON.parse(res.value);
   }catch(e){ return null; }
 }
 
-async function clearSave(){
-  await store.delete(SAVE_KEY);
-  document.getElementById('resume-banner').style.display='none';
+async function loadAllSessions(){
+  try{
+    const allKeys = await store.keys();
+    const sessionKeys = allKeys.filter(k=>k.startsWith(SAVE_KEY_PREFIX));
+    const sessions=[];
+    for(const k of sessionKeys){
+      try{
+        const res=await store.get(k);
+        if(res){ const s=JSON.parse(res.value); if(s && !s.isLive) sessions.push(s); }
+      }catch(e){}
+    }
+    return sessions.sort((a,b)=>b.savedAt-a.savedAt);
+  }catch(e){ return []; }
+}
+
+async function clearSave(subject, grade){
+  const key = sessionKey(subject||selectedSubject, grade||selectedGrade);
+  await store.delete(key);
+  await checkResumeBanner();
 }
 
 async function saveResult(snapshot){
@@ -2409,7 +2425,6 @@ async function saveResult(snapshot){
     const res=await store.get(RESULTS_KEY);
     const arr=res?JSON.parse(res.value):[];
     arr.unshift(snapshot);
-    // No cap — save every test
     await store.set(RESULTS_KEY, JSON.stringify(arr));
   }catch(e){}
 }
@@ -2452,12 +2467,17 @@ async function clearLiveResults(){
 
 async function clearAllResults(){
   await store.delete(RESULTS_KEY);
-  // Also nuke directly from both storage backends
+  // Clear all saved sessions
+  const allKeys = await store.keys();
+  for(const k of allKeys){
+    if(k.startsWith(SAVE_KEY_PREFIX)) await store.delete(k);
+  }
   try{ localStorage.removeItem('adaptiq-results'); }catch(e){}
   try{ localStorage.removeItem(RESULTS_KEY); }catch(e){}
   try{ if(window.storage){ await window.storage.delete('adaptiq-results'); await window.storage.delete(RESULTS_KEY); } }catch(e){}
   document.getElementById('past-results-section').style.display='none';
   document.getElementById('past-results-list').innerHTML='';
+  document.getElementById('resume-banner-list').innerHTML='';
 }
 
 function renderPastResults(arr){
@@ -2505,24 +2525,34 @@ async function checkPastResults(){
 
 // ── Resume banner ────────────────────────────────────────────────
 async function checkResumeBanner(){
-  const s=await loadSession();
-  if(!s){ document.getElementById('resume-banner').style.display='none'; return; }
-  const subLabel=s.selectedSubject==='math'?'Mathematics':'Reading & Vocabulary';
-  const icon=s.selectedSubject==='math'?'➕':'📖';
-  const gradeLabel=GRADE_LABELS[s.selectedGrade]||'K';
-  const done=s.qIndex; const total=s.TOTAL_Q;
-  document.getElementById('resume-icon').textContent=icon;
-  document.getElementById('resume-title').textContent=`Resume ${subLabel}`;
-  document.getElementById('resume-sub').textContent=`Grade ${gradeLabel} · Question ${done+1} of ${total}`;
-  const btn=document.getElementById('btn-resume');
-  btn.className=`btn ${s.selectedSubject==='math'?'btn-accent-math':'btn-accent-read'} resume-btn`;
-  document.getElementById('resume-banner').style.display='block';
+  const sessions = await loadAllSessions();
+  const container = document.getElementById('resume-banner-list');
+  if(!sessions.length){ container.innerHTML=''; return; }
+  container.innerHTML = sessions.map(s=>{
+    const subLabel=s.selectedSubject==='math'?'Mathematics':'Reading & Vocabulary';
+    const icon=s.selectedSubject==='math'?'➕':'📖';
+    const gradeLabel=GRADE_LABELS[s.selectedGrade]||'K';
+    const btnClass=`btn ${s.selectedSubject==='math'?'btn-accent-math':'btn-accent-read'} resume-btn`;
+    const key=`${s.selectedSubject}-${s.selectedGrade}`;
+    return `<div class="resume-card" style="margin-bottom:10px">
+      <div class="resume-info">
+        <span class="resume-icon">${icon}</span>
+        <div>
+          <div class="resume-title">Resume ${subLabel}</div>
+          <div class="resume-sub">Grade ${gradeLabel} · Question ${s.qIndex+1} of ${s.TOTAL_Q}</div>
+        </div>
+      </div>
+      <div class="resume-actions">
+        <button class="${btnClass}" onclick="resumeTest('${s.selectedSubject}',${s.selectedGrade})">Resume <span>→</span></button>
+        <button class="btn-ghost resume-discard" onclick="discardSave('${s.selectedSubject}',${s.selectedGrade})">Discard</button>
+      </div>
+    </div>`;
+  }).join('');
 }
 
-async function resumeTest(){
-  const s=await loadSession();
+async function resumeTest(subject, grade){
+  const s=await loadSession(subject, grade);
   if(!s) return;
-  // Restore all state
   selectedSubject=s.selectedSubject;
   selectedGrade=s.selectedGrade;
   qIndex=s.qIndex;
@@ -2541,8 +2571,8 @@ async function resumeTest(){
   renderQuestion();
 }
 
-async function discardSave(){
-  await clearSave();
+async function discardSave(subject, grade){
+  await clearSave(subject, grade);
 }
 
 // ── Exit ─────────────────────────────────────────────────────────
@@ -2567,7 +2597,7 @@ function confirmRestart(){
     'Restart test?',
     'Your current progress will be lost and the test will restart from Question 1.',
     'Restart',
-    ()=>{ closeModal(); clearSave(); beginTest(); }
+    ()=>{ closeModal(); clearSave(selectedSubject, selectedGrade); beginTest(); }
   );
 }
 
@@ -2622,59 +2652,107 @@ checkPastResults();
 //  TEXT ANALYSER — Spache, Flesch-Kincaid, Estimated Lexile
 // ═══════════════════════════════════════════════════════════════════
 
-// Spache familiar word list — original revised Spache (1974), ~1000 words known by end of grade 3
+// Spache familiar word list — complete official revised Spache (1974)
 const SPACHE_FAMILIAR = new Set([
-  'a','able','about','above','across','add','afraid','after','again','age','ago','air','all','almost',
-  'alone','along','already','also','always','am','an','and','another','any','anyone','anything','are',
-  'around','as','ask','at','ate','away','baby','back','bad','ball','barn','be','because','been',
-  'before','began','behind','below','best','better','between','big','black','block','blue','book',
-  'both','box','boy','brown','but','buy','by','came','can','car','carry','cat','chair','children',
-  'church','city','clean','cold','come','comes','could','country','cut','dark','day','did','different',
-  'do','does','dog','done','door','down','draw','eat','enough','even','ever','every','eyes','face',
-  'fall','family','far','farm','fast','father','feel','feet','fell','few','find','fire','first',
-  'fish','fly','follow','food','for','found','friend','from','front','full','fun','game','gave',
-  'get','girl','give','glad','go','going','good','got','great','green','ground','grow','had','hard',
-  'has','have','he','head','hear','help','her','here','him','his','home','horse','house','how',
-  'hurt','i','if','in','inside','into','is','it','its','just','keep','kind','know','large','last',
-  'later','learn','left','let','light','like','line','little','live','long','look','made','make',
-  'man','many','may','me','men','might','more','morning','most','mother','much','must','my','myself',
-  'name','near','need','never','new','next','night','no','not','now','of','off','often','old','on',
-  'once','one','only','open','or','other','our','out','outside','over','own','people','place','play',
-  'put','rain','ran','read','red','right','river','road','run','said','same','saw','say','school',
-  'see','seen','she','show','small','snow','so','some','something','sometimes','soon','start','still',
-  'stop','story','sun','take','tell','than','that','the','their','them','then','there','these','they',
-  'thing','think','this','those','three','through','time','to','together','told','too','took','town',
-  'tree','try','two','under','until','up','us','use','very','walk','want','warm','was','water','way',
-  'we','well','went','were','what','when','where','which','while','white','who','why','will','wind',
-  'with','woman','women','work','would','write','year','yes','you','young','your',
-  'act','ago','am','any','ask','ate','bad','ball','barn','big','black','block','blue','book','both',
-  'box','boy','brown','buy','came','car','carry','cat','chair','children','church','city','clean',
-  'cold','cut','dark','did','different','does','dog','done','door','draw','eat','enough','ever',
-  'face','fall','family','far','farm','fast','father','feel','feet','fell','few','find','fire',
-  'first','fish','fly','follow','food','found','friend','front','full','fun','game','gave','girl',
-  'glad','going','got','great','green','ground','grow','hard','head','hear','help','home','horse',
-  'house','hurt','keep','kind','large','later','learn','left','light','long','morning','most',
-  'mother','must','name','near','need','never','next','night','often','open','outside','own',
-  'rain','ran','read','red','river','road','run','saw','school','seen','show','small','snow',
-  'something','sometimes','soon','start','stop','story','sun','told','took','town','tree','walk',
-  'want','warm','water','way','while','white','wind','write','young',
-  'about','above','across','after','again','age','ago','air','alone','along','already','always',
-  'another','around','away','baby','back','because','began','behind','below','best','better',
-  'between','came','could','country','day','different','down','draw','enough','even','every',
-  'eyes','fall','family','far','fast','father','feet','fell','find','first','follow','from',
-  'front','full','gave','give','glad','going','got','great','ground','grow','had','has','have',
-  'head','hear','help','here','him','his','home','horse','house','how','hurt','if','in','inside',
-  'into','just','keep','kind','know','large','last','later','learn','left','let','light','like',
-  'line','little','live','long','look','made','make','man','many','may','men','might','more',
-  'morning','most','mother','much','must','my','myself','near','need','never','new','next',
-  'night','often','old','once','one','only','open','other','our','out','outside','over','own',
-  'people','place','play','put','rain','ran','right','river','road','run','same','saw','school',
-  'seen','show','small','snow','something','sometimes','soon','start','still','stop','story',
-  'sun','take','tell','than','their','them','then','there','these','they','thing','think',
-  'this','those','three','through','time','together','told','took','town','tree','try','two',
-  'under','until','up','us','use','very','walk','want','warm','was','water','way','we','well',
-  'went','were','what','when','where','which','while','white','who','why','will','wind','with',
-  'woman','women','work','would','write','year','yes','you','young','your'
+  'a','able','about','above','across','act','add','afraid','after','afternoon','again','against',
+  'ago','air','airplane','alarm','all','almost','alone','along','already','also','always','am',
+  'among','an','and','angry','animal','another','answer','any','anyone','appear','apple','are',
+  'arm','around','arrow','as','ask','asleep','at','ate','attention','aunt','awake','away',
+  'baby','back','bad','bag','ball','balloon','bang','bank','bark','barn','basket','be','bean',
+  'bear','beat','beautiful','became','because','become','bed','bee','been','before','began',
+  'begin','behind','believe','bell','belong','bend','bent','beside','best','better','between',
+  'big','bird','birthday','bit','bite','black','blanket','blew','block','blow','blue','board',
+  'boat','book','boot','born','borrow','both','bother','bottle','bottom','bought','bow','box',
+  'boy','branch','brave','bread','break','breakfast','breath','brick','bridge','bright','bring',
+  'broke','broken','brother','brought','brown','brush','build','bump','burn','bus','busy','but',
+  'butter','button','buy','by',
+  'cabin','cage','cake','call','came','camp','can','candle','candy','cap','captain','car',
+  'card','care','careful','carrot','carry','case','castle','cat','catch','cattle','caught',
+  'cause','cent','certain','chair','chance','change','chase','chicken','chief','child',
+  'children','church','circle','circus','city','clap','clean','clever','cliff','climb','clock',
+  'close','cloth','clothes','clown','coat','cold','color','come','comfortable','company',
+  'contest','continue','cook','cool','corner','could','count','country','course','cover','cow',
+  'crawl','cream','cry','cup','curtain','cut',
+  'dad','dance','danger','dangerous','dark','dash','daughter','day','dear','decide','deep',
+  'desk','did','die','different','dig','dinner','direction','disappear','disappoint','discover',
+  'distance','do','doctor','does','dog','dollar','done','door','down','dragon','dream','dress',
+  'drink','drive','drop','drove','dry','duck','during','dust',
+  'each','eager','ear','early','earn','earth','easy','eat','edge','egg','eight','eighteen',
+  'either','elephant','else','empty','end','enemy','enough','enter','even','ever','every',
+  'everything','exact','except','excite','exclaim','explain','eye',
+  'face','fact','fair','fall','family','far','farm','farmer','farther','fast','fat','father',
+  'feather','feed','feel','feet','fell','fellow','felt','fence','few','field','fierce','fight',
+  'figure','fill','final','find','fine','finger','finish','fire','first','fish','five','flag',
+  'flash','flat','flew','floor','flower','fly','follow','food','for','forest','forget','forth',
+  'found','four','fourth','fox','fresh','friend','frighten','frog','from','front','fruit',
+  'full','fun','funny','fur',
+  'game','garden','gasp','gate','gave','get','giant','gift','girl','give','glad','glass','go',
+  'goat','gone','good','got','grandfather','grandmother','grass','gray','great','green','grew',
+  'grin','ground','group','grow','growl','guess','gun',
+  'had','hair','half','hall','hand','handle','hang','happen','happiness','happy','hard','harm',
+  'has','hat','hate','have','he','head','hear','heard','heavy','held','hello','help','hen',
+  'her','here','herself','hid','hide','high','hill','him','himself','his','hit','hold','hole',
+  'holiday','home','honey','hop','horn','horse','hot','hour','house','how','howl','hum',
+  'hundred','hung','hungry','hunt','hurry','hurt','husband',
+  'ice','idea','if','imagine','important','in','inch','indeed','inside','instead','into',
+  'invite','is','it','its',
+  'jacket','jar','jet','job','join','joke','joy','jump','just',
+  'keep','kept','key','kick','kill','kind','king','kitchen','kitten','knee','knew','knock','know',
+  'ladder','lady','laid','lake','land','large','last','late','laugh','lay','lazy','lead','leap',
+  'learn','least','leave','left','leg','less','let','letter','lick','lift','light','like',
+  'line','lion','list','listen','little','live','load','long','look','lost','lot','loud',
+  'love','low','luck','lump','lunch',
+  'machine','made','magic','mail','make','man','many','march','mark','market','master','matter',
+  'may','maybe','me','mean','meant','meat','meet','melt','men','merry','met','middle','might',
+  'mile','milk','milkman','mind','mine','minute','miss','mistake','moment','money','monkey',
+  'month','more','morning','most','mother','mountain','mouse','mouth','move','much','mud',
+  'music','must','my',
+  'name','near','neck','need','needle','neighbor','neighborhood','nest','never','new','next',
+  'nibble','nice','night','nine','no','nod','noise','none','north','nose','not','note',
+  'nothing','notice','now','number',
+  'ocean','of','off','offer','often','oh','old','on','once','one','only','open','or','orange',
+  'order','other','our','out','outside','over','owl','own',
+  'pack','paid','pail','paint','pair','palace','pan','paper','parade','parent','park','part',
+  'party','pass','past','pasture','path','paw','pay','peanut','peek','pen','penny','people',
+  'perfect','perhaps','person','pet','pick','picket','picnic','picture','pie','piece','pig',
+  'pile','pin','place','plan','plant','play','pleasant','please','plenty','plow','point',
+  'poke','pole','policeman','pond','poor','pop','postman','pot','potato','pound','pour',
+  'practice','prepare','present','pretend','pretty','princess','prize','probably','problem',
+  'promise','protect','proud','puff','pull','puppy','push','put',
+  'queen','queer','quick','quiet','quite',
+  'rabbit','raccoon','race','radio','rag','rain','raise','ran','ranch','rang','reach','read',
+  'ready','real','red','refuse','remember','reply','rest','return','reward','rich','ride',
+  'right','ring','river','road','roar','rock','rode','roll','roof','room','rope','round',
+  'row','rub','rule','run','rush',
+  'sad','safe','said','sail','sale','salt','same','sand','sang','sat','save','saw','say',
+  'scare','school','scold','scratch','scream','sea','seat','second','secret','see','seed',
+  'seem','seen','sell','send','sent','seven','several','sew','shadow','shake','shall','shape',
+  'she','sheep','shell','shine','ship','shoe','shone','shook','shoot','shop','shore','short',
+  'shot','should','show','sick','side','sight','sign','signal','silent','silly','silver',
+  'since','sing','sister','sit','six','size','skip','sky','sled','sleep','slid','slide',
+  'slow','small','smart','smell','smile','smoke','snap','sniff','snow','so','soft','sold',
+  'some','something','sometimes','son','song','soon','sorry','sound','speak','special','spend',
+  'spill','splash','spoke','spot','spread','spring','squirrel','stand','star','start',
+  'station','stay','step','stick','still','stone','stood','stop','store','story','straight',
+  'strange','street','stretch','strike','strong','such','sudden','sugar','suit','summer',
+  'sun','supper','suppose','sure','surprise','swallow','sweet','swim','swing',
+  'table','tail','take','talk','tall','tap','taste','teach','teacher','team','tear','teeth',
+  'telephone','tell','ten','tent','than','thank','that','the','their','them','then','there',
+  'these','they','thick','thin','thing','think','third','this','those','though','thought',
+  'three','threw','through','throw','tie','tiger','tight','time','tiny','tip','tire','to',
+  'today','toe','together','told','tomorrow','too','took','tooth','top','touch','toward',
+  'tower','town','toy','track','traffic','train','trap','tree','trick','trip','trot','truck',
+  'true','trunk','try','turkey','turn','turtle','twelve','twin','two',
+  'ugly','uncle','under','unhappy','until','up','upon','upstairs','us','use','usual',
+  'valley','vegetable','very','village','visit','voice',
+  'wag','wagon','wait','wake','walk','want','war','warm','was','wash','waste','watch','water',
+  'wave','way','we','wear','weather','week','well','went','were','wet','what','wheel','when',
+  'where','which','while','whisper','whistle','white','who','whole','whose','why','wide',
+  'wife','will','win','wind','window','wing','wink','winter','wire','wise','wish','with',
+  'without','woke','wolf','woman','women','wonder','wood','word','wore','work','world',
+  'worm','worry','worth','would','wrong',
+  'yard','year','yell','yellow','yes','yet','you','young','your',
+  'zoo'
 ]);
 
 // Live word count
@@ -2685,6 +2763,10 @@ document.getElementById('analyser-input').addEventListener('input', function(){
 });
 
 function isSpacheFamiliar(word){
+  word = word.replace(/[^a-z']/g,'').toLowerCase();
+  if(!word) return true;
+  // Strip possessive 's upfront before any other processing
+  if(word.endsWith("'s")) word = word.slice(0, -2);
   word = word.replace(/[^a-z]/g,'');
   if(!word) return true;
   if(SPACHE_FAMILIAR.has(word)) return true;
@@ -2692,7 +2774,7 @@ function isSpacheFamiliar(word){
   // Strip common suffixes and check root
   const suffixes = [
     'ings','ing','tion','sion','ness','ment','less','ful','able','ible',
-    ' ally','ally','ly','est','er','ers','ed','es','s','\'s'
+    'ally','ly','est','er','ers','ed','es','s'
   ];
   for(const suf of suffixes){
     if(word.endsWith(suf) && word.length > suf.length + 2){
@@ -2725,7 +2807,8 @@ function isSpacheFamiliar(word){
 }
 
 function tokeniseWords(text){
-  return text.trim().toLowerCase().match(/\b[a-z']+\b/g) || [];
+  // Keep apostrophes so possessives like "dog's" are handled correctly
+  return text.trim().toLowerCase().match(/\b[a-z][a-z']*[a-z]\b|\b[a-z]\b/g) || [];
 }
 
 function countSyllables(word){
@@ -2840,9 +2923,9 @@ function runAnalyser(){
   const fre = fleschReadingEase(words, sentences);
 
   // x*Spache + (1-x)*FK = 16.6 for the Proclamation
-  // using website's actual values: s=10.6402, f=23.3482
-  // x = (16.6 - 23.3482) / (10.6402 - 23.3482) = 0.5310198300
-  const x = 0.5310198300;
+  // Website values: s=9.5552, f=22.118
+  // x = (16.6 - 22.118) / (9.5552 - 22.118) = 0.4392332919
+  const x = 0.4392332919;
   let blendedGrade;
   if(fk && spache){
     blendedGrade = Math.max(0.5, x * spache.grade + (1-x) * fk.grade);
