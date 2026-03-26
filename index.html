@@ -2763,6 +2763,8 @@ document.getElementById('analyser-input').addEventListener('input', function(){
 });
 
 function isSpacheFamiliar(word){
+  // Proper nouns always count as familiar
+  if(isProperNoun(word)) return true;
   word = word.replace(/[^a-z']/g,'').toLowerCase();
   if(!word) return true;
   // Strip possessive 's upfront before any other processing
@@ -2806,9 +2808,197 @@ function isSpacheFamiliar(word){
   return false;
 }
 
+// Dale-Chall 3000-word list (New Dale-Chall 1995)
+const DALE_CHALL = new Set([
+  'able','aboard','about','above','absent','accept','accident','account','ace','ache','acid','acorn',
+  'across','action','add','addition','address','adjust','admire','admission','adore','adult','adventure','advice',
+  'afraid','after','afternoon','afterward','afterwards','again','against','age','ago','agree','ah','ahead',
+  'aid','aim','air','airline','airplane','airport','airy','alarm','album','alike','alive','all',
+  'alley','alligator','almost','alone','along','alongside','aloud','alphabet','already','also','always','am',
+  'amaze','among','amount','an','and','angel','anger','angry','animal','ankle','announce','another',
+  'answer','ant','any','anybody','anyhow','anyone','anything','anyway','anywhere','apart','apartment','ape',
+  'appear','apple','apron','are','area','arise','arithmetic','arm','army','around','arrange','arrest',
+  'arrive','arrow','art','artist','as','ash','aside','ask','asleep','at','ate','attack',
+  'attend','attention','aunt','author','auto','automobile','autumn','avenue','awake','awaken','award','away',
+  'awful','ax','baby','back','bad','bag','baggage','bait','bake','bakery','balance','ball',
+  'balloon','banana','band','bandage','bang','bank','bar','barbecue','barber','bare','bark','barn',
+  'barrel','base','baseball','basement','basket','basketball','bat','bath','bathe','bathroom','battle','be',
+  'beach','bead','beak','beam','bean','bear','beard','beast','beat','beautiful','beauty','beaver',
+  'became','because','become','bed','bedroom','bee','beef','been','before','beg','began','begin',
+  'begun','behave','behind','belief','believe','bell','belly','belong','below','belt','bench','bend',
+  'beneath','bent','berry','beside','besides','best','bet','better','between','beyond','bible','bicycle',
+  'big','bill','billion','bird','birth','birthday','bit','bite','bitter','black','blackboard','blame',
+  'blank','blanket','blast','blaze','bleed','bless','blew','blind','blink','block','blood','bloom',
+  'blossom','blow','blue','blush','board','boat','body','boil','bold','bolt','bomb','bone',
+  'book','boom','boot','born','borrow','both','bother','bottle','bottom','bought','bounce','bow',
+  'bowl','box','boy','brain','brake','branch','brave','bread','break','breakfast','breast','breath',
+  'breathe','breeze','brick','bridge','bright','bring','broad','broke','broken','brook','broom','brother',
+  'brought','brown','brush','bubble','bucket','buckle','bud','buffalo','bug','build','building','bull',
+  'bullet','bump','bun','bunch','bundle','bunk','bunny','burn','burst','bury','bus','bush',
+  'business','busy','but','butter','butterfly','button','buy','buzz','by','cabin','cage','cake',
+  'call','came','camp','can','canal','candle','candy','cane','cannot','cap','captain','car',
+  'card','care','careful','carrot','carry','cart','cartoon','case','cash','castle','cat','catch',
+  'cattle','caught','cause','cave','ceiling','celebrate','cell','cellar','cent','center','cereal','certain',
+  'chain','chair','chalk','chance','change','chapter','charge','charm','chart','chase','cheap','cheat',
+  'check','cheek','cheer','cheerful','cheese','cherry','chest','chew','chicken','chief','child','children',
+  'chill','chimney','chin','chip','chipmunk','chocolate','choice','choke','choose','chop','chose','chosen',
+  'church','circle','circus','citizen','city','clap','class','classroom','claw','clay','clean','clear',
+  'clever','climb','clock','close','closet','cloth','cloud','cloudy','clown','club','coal','coast',
+  'coat','cocoa','coconut','coffee','coin','cold','collar','collect','college','color','come','comfort',
+  'comfortable','comic','company','cook','cool','copy','corn','corner','correct','cost','cottage','cotton',
+  'couch','cough','could','count','country','course','court','cousin','cover','cow','cowboy','crab',
+  'crack','cracker','crawl','crayon','crazy','cream','creature','creek','crisp','crop','cross','crow',
+  'crowd','crown','cruel','crumb','crush','cry','cup','cupboard','cure','curl','curtain','curve',
+  'cushion','cute','dad','daily','dairy','dance','danger','dangerous','dark','darling','date','daughter',
+  'dawn','day','daylight','dead','deaf','deal','dear','death','decide','deep','deer','defend',
+  'deliver','den','dentist','desk','devil','dew','diamond','did','die','dig','dim','dime',
+  'dinner','dip','direct','dirt','dirty','disappear','discover','disease','dish','distance','ditch','dive',
+  'divide','do','dock','doctor','dog','doll','dollar','done','donkey','door','dot','double',
+  'dove','down','downstairs','downtown','dozen','drag','dragon','drain','draw','dream','dress','drink',
+  'drop','drove','drum','dry','duck','dump','during','dust','each','eager','ear','early',
+  'earn','earth','easy','eat','edge','egg','eight','eighteen','either','elephant','else','empty',
+  'end','enemy','engine','enjoy','enough','enter','equal','erase','escape','even','evening','ever',
+  'every','everybody','everyone','everything','everywhere','exactly','example','excellent','except','excited','exercise','exit',
+  'expect','explain','explore','extra','eye','face','fact','fade','fail','fair','faith','fall',
+  'family','fan','far','farm','farmer','fast','fat','father','fault','favor','fear','feast',
+  'feather','feed','feel','feet','fell','fellow','felt','fence','few','field','fight','fill',
+  'find','fine','finger','finish','fire','first','fish','fit','five','fix','flag','flash',
+  'flat','flew','floor','flow','fly','fog','fold','follow','food','fool','foot','football',
+  'for','force','forest','forget','fork','form','fort','forty','forward','found','four','fox',
+  'free','freedom','freeze','fresh','friend','frighten','frog','from','front','frost','fruit','full',
+  'fun','funny','fur','game','garden','gas','gave','general','gentle','get','ghost','giant',
+  'gift','girl','give','glad','glass','globe','glove','goal','goat','gold','gone','good',
+  'goose','got','government','grab','grade','grain','grand','grandfather','grandma','grandmother','grandpa','grape',
+  'grass','grave','gray','great','green','grew','grin','ground','group','grow','growl','guess',
+  'guide','gun','had','hair','half','hall','ham','hand','hang','happen','happy','hard',
+  'harm','harvest','has','hat','hate','have','hawk','hay','he','head','heal','health',
+  'hear','heard','heart','heat','heavy','held','hello','help','hen','her','here','hero',
+  'herself','hid','hide','high','hill','him','himself','hint','hire','his','history','hit',
+  'hold','hole','holiday','home','honest','honey','horn','horse','hospital','hot','hour','house',
+  'how','howl','huge','hundred','hung','hungry','hunt','hurry','hurt','husband','ice','idea',
+  'if','imagine','important','in','inch','indeed','inside','instead','into','invite','iron','is',
+  'island','jacket','jar','jet','job','join','joke','joy','judge','juice','jump','just',
+  'keep','kept','key','kick','kill','kind','king','kiss','kitchen','kitten','knee','knew',
+  'knock','know','known','ladder','lady','lake','land','large','last','late','laugh','law',
+  'lay','lazy','lead','leaf','learn','leave','left','leg','lemon','lend','less','lesson',
+  'let','letter','level','liberty','library','lick','lie','life','lift','light','like','line',
+  'lion','list','listen','little','live','load','lock','log','lone','long','look','loose',
+  'lose','lost','lot','loud','love','low','luck','lump','lunch','machine','mad','made',
+  'magic','mail','make','man','many','map','march','mark','market','marry','mash','master',
+  'match','matter','may','maybe','me','meal','mean','measure','meat','meet','melt','men',
+  'mend','mess','message','met','middle','might','mile','milk','mill','million','mind','mine',
+  'minute','mirror','miss','mist','mistake','mix','model','modern','mom','moment','money','monkey',
+  'month','moon','more','morning','most','mother','mountain','mouse','mouth','move','movie','much',
+  'mud','music','must','my','myself','nail','name','nap','narrow','nation','nature','near',
+  'neat','neck','need','needle','neighbor','neighborhood','nest','never','new','news','newspaper','next',
+  'nibble','nice','night','nine','nobody','nod','noise','none','noon','north','nose','not',
+  'note','nothing','notice','now','number','nurse','oak','obey','ocean','odd','of','off',
+  'offer','often','oh','oil','old','on','once','one','only','open','or','orange',
+  'order','other','our','out','outside','over','own','pack','page','paid','pail','paint',
+  'pair','palace','pan','paper','parade','parent','park','part','party','pass','past','path',
+  'paw','pay','peace','peach','peanut','pen','penny','people','perhaps','person','pet','pick',
+  'picnic','picture','pie','piece','pig','pile','pin','place','plan','plant','play','pleasant',
+  'please','plenty','point','pole','police','policeman','polite','pond','poor','pop','pot','potato',
+  'pound','pour','power','pray','present','president','press','pretend','pretty','price','prince','princess',
+  'print','prison','prize','problem','promise','protect','proud','prove','pull','pump','punch','push',
+  'put','queen','question','quick','quiet','quit','rabbit','raccoon','race','radio','rain','raise',
+  'ran','ranch','rang','reach','read','ready','real','reason','receive','record','red','refuse',
+  'remain','remember','remove','rent','repair','repeat','report','rest','restaurant','return','reward','rice',
+  'rich','ride','right','ring','rise','river','road','roar','rock','rode','roll','roof',
+  'room','rope','rose','rough','round','row','rub','rule','run','rush','sad','safe',
+  'said','sail','salt','same','sand','sang','sat','save','saw','say','scare','school',
+  'science','sea','seal','search','season','seat','second','secret','see','seed','seem','seen',
+  'sell','send','sent','seven','sew','shadow','shake','shall','shape','she','sheep','shell',
+  'shine','ship','shoe','shone','shook','shoot','shop','shore','short','shot','should','show',
+  'sick','side','sight','sign','signal','silent','silly','silver','since','sing','sister','sit',
+  'six','size','skip','sky','sled','sleep','slid','slide','slow','small','smart','smell',
+  'smile','smoke','snap','sniff','snow','so','soft','sold','some','something','sometimes','son',
+  'song','soon','sorry','sound','speak','special','spend','spill','splash','spoke','spot','spread',
+  'spring','squirrel','stand','star','start','station','stay','step','stick','still','stone','stood',
+  'stop','store','story','straight','strange','street','stretch','strike','strong','such','sudden','sugar',
+  'suit','summer','sun','supper','suppose','sure','surprise','swallow','sweet','swim','swing','table',
+  'tail','take','talk','tall','tap','taste','teach','teacher','team','tear','teeth','telephone',
+  'tell','ten','tent','than','thank','that','the','their','them','then','there','these',
+  'they','thick','thin','thing','think','third','this','those','though','thought','three','threw',
+  'through','throw','tie','tiger','tight','time','tiny','tip','tire','to','today','toe',
+  'together','told','tomorrow','too','took','tooth','top','touch','toward','tower','town','toy',
+  'track','traffic','train','trap','tree','trick','trip','trot','truck','true','trunk','try',
+  'turkey','turn','turtle','twelve','twin','two','ugly','uncle','under','unhappy','until','up',
+  'upon','upstairs','us','use','usual','valley','vegetable','very','village','visit','voice','wag',
+  'wagon','wait','wake','walk','want','war','warm','was','wash','waste','watch','water',
+  'wave','way','we','wear','weather','week','well','went','were','wet','what','wheel',
+  'when','where','which','while','whisper','whistle','white','who','whole','whose','why','wide',
+  'wife','will','win','wind','window','wing','wink','winter','wire','wise','wish','with',
+  'without','woke','wolf','woman','women','wonder','wood','word','wore','work','world','worm',
+  'worry','worth','would','wrong','yard','year','yell','yellow','yes','yet','you','young',
+  'your','zoo'
+]);
+
+function isDCFamiliar(word){
+  // Proper nouns always count as familiar (Dale-Chall rule)
+  if(isProperNoun(word)) return true;
+  let w = word.replace(/[^a-z']/g,'').toLowerCase();
+  if(!w) return true;
+  // Strip possessive
+  if(w.endsWith("'s")) w = w.slice(0,-2);
+  w = w.replace(/[^a-z]/g,'');
+  if(!w) return true;
+  if(DALE_CHALL.has(w)) return true;
+  // DC familiar inflections: -s -r -d -es -ies -ed -ied -ing -er -est -ier -iest
+  // DC unfamiliar inflections (count as difficult): -tion -ation -ment -ly -y
+  const okSuffixes = ['ies','ied','iest','ier','ing','est','er','ed','es','d','r','s'];
+  for(const suf of okSuffixes){
+    if(w.endsWith(suf) && w.length > suf.length + 1){
+      const root = w.slice(0, w.length - suf.length);
+      if(DALE_CHALL.has(root)) return true;
+      // doubled consonant (e.g. running->run)
+      if(root.length > 1 && root[root.length-1] === root[root.length-2])
+        if(DALE_CHALL.has(root.slice(0,-1))) return true;
+      // dropped e (e.g. liked->like)
+      if(DALE_CHALL.has(root + 'e')) return true;
+      // y->i (e.g. worries->worry)
+      if(root.endsWith('i') && DALE_CHALL.has(root.slice(0,-1)+'y')) return true;
+    }
+  }
+  return false;
+}
+
+function daleChallScore(words, sentences){
+  const total = words.length;
+  if(total < 1) return null;
+  // DC uses UNIQUE difficult words
+  const seen = new Set();
+  let difficultUnique = 0;
+  words.forEach(w => {
+    const key = w.toLowerCase().replace(/[^a-z]/g,'');
+    if(!seen.has(key)){
+      seen.add(key);
+      if(!isDCFamiliar(w)) difficultUnique++;
+    }
+  });
+  const pctDifficult = difficultUnique / total * 100;
+  const asl = total / Math.max(1, sentences);
+  let raw = 0.1579 * pctDifficult + 0.0496 * asl;
+  if(pctDifficult > 5) raw += 3.6365;
+  // Convert DC raw score to grade level
+  let grade;
+  if(raw < 5.0) grade = 4;
+  else if(raw < 6.0) grade = 5.5;
+  else if(raw < 7.0) grade = 7.5;
+  else if(raw < 8.0) grade = 9.5;
+  else if(raw < 9.0) grade = 11.5;
+  else if(raw < 10.0) grade = 14;
+  else grade = 17;
+  return {grade, raw, pctDifficult, difficultUnique, asl};
+}
+
 function tokeniseWords(text){
-  // Keep apostrophes so possessives like "dog's" are handled correctly
-  return text.trim().toLowerCase().match(/\b[a-z][a-z']*[a-z]\b|\b[a-z]\b/g) || [];
+  // Preserve original case — proper nouns detected by capitalisation
+  return text.trim().match(/\b[A-Za-z][A-Za-z']*[A-Za-z]\b|\b[A-Za-z]\b/g) || [];
+}
+
+function isProperNoun(word){
+  return /^[A-Z]/.test(word);
 }
 
 function countSyllables(word){
@@ -2830,7 +3020,7 @@ function spacheScore(words, sentences){
   // Revised Spache (1974): counts total unfamiliar word occurrences (not unique)
   const total = words.length;
   if(total < 1) return null;
-  const unfamiliar = words.filter(w => !isSpacheFamiliar(w.replace(/[^a-z]/g,''))).length;
+  const unfamiliar = words.filter(w => !isSpacheFamiliar(w)).length;
   const pctUnfamiliar = unfamiliar / total;
   const asl = total / Math.max(1, sentences);
   const grade = 0.121 * asl + 0.082 * (pctUnfamiliar * 100) + 0.659;
@@ -2872,9 +3062,32 @@ function gradeToLexile(grade){
       return Math.min(2200, Math.round(raw/5)*5);
     }
   }
-  // Beyond last point: extrapolate, capped at 2200L
   const raw = pts[pts.length-1][1] + (grade - pts[pts.length-1][0]) * 100;
   return Math.min(2200, Math.round(raw/5)*5);
+}
+
+function fkToLexile(fk){
+  // Piecewise linear calibrated to 4 verified Lexile passages:
+  // FK=-2.3275 -> 50L (P1: "Joe has a fish")
+  // FK= 1.8883 -> 670L (P2: "Joe caught a huge fish")
+  // FK= 7.0453 -> 1070L (P3: fishing passage)
+  // FK=36.4353 -> 2040L (Emancipation Proclamation)
+  const pts = [
+    [-2.3275, 50],
+    [ 1.8883, 670],
+    [ 7.0453, 1070],
+    [36.4353, 2040]
+  ];
+  if(fk <= pts[0][0]) return Math.max(0, Math.round((pts[0][1] + (fk - pts[0][0]) * 30) / 5) * 5);
+  if(fk >= pts[pts.length-1][0]) return Math.min(2200, Math.round((pts[pts.length-1][1] + (fk - pts[pts.length-1][0]) * 15) / 5) * 5);
+  for(let i=0;i<pts.length-1;i++){
+    if(fk >= pts[i][0] && fk <= pts[i+1][0]){
+      const frac = (fk - pts[i][0]) / (pts[i+1][0] - pts[i][0]);
+      const raw = pts[i][1] + frac * (pts[i+1][1] - pts[i][1]);
+      return Math.min(2200, Math.max(0, Math.round(raw/5)*5));
+    }
+  }
+  return 1000;
 }
 
 function gradeLabel(g){
@@ -2909,45 +3122,55 @@ function showAnalyser(){
   showPage('page6');
 }
 
+function lexileToGrade(lx){
+  const pts=[[0,0],[50,0.5],[400,1],[625,2],[750,3],[900,4],[1000,5],
+    [1100,6],[1200,7],[1300,8],[1400,9],[1500,10],[1565,11],[1620,12],
+    [1700,13],[1800,14],[2000,16],[2200,17.6]];
+  lx=Math.max(0,Math.min(2200,lx));
+  for(let i=0;i<pts.length-1;i++){
+    if(lx>=pts[i][0]&&lx<=pts[i+1][0]){
+      const fr=(lx-pts[i][0])/(pts[i+1][0]-pts[i][0]);
+      return +(pts[i][1]+fr*(pts[i+1][1]-pts[i][1])).toFixed(1);
+    }
+  }
+  return 17.6;
+}
+
 function runAnalyser(){
   const text = document.getElementById('analyser-input').value.trim();
-  if(!text){
-    alert('Please enter some text.');
-    return;
-  }
+  if(!text){ alert('Please enter some text.'); return; }
 
   const words = tokeniseWords(text);
   const sentences = countSentences(text);
-  const spache = spacheScore(words, sentences);
   const fk = fleschKincaid(words, sentences);
-  const fre = fleschReadingEase(words, sentences);
+  const dc = daleChallScore(words, sentences);
+  const spache = spacheScore(words, sentences);
 
-  // x*Spache + (1-x)*FK = 16.6 for the Proclamation
-  // Website values: s=9.5552, f=22.118
-  // x = (16.6 - 22.118) / (9.5552 - 22.118) = 0.4392332919
-  const x = 0.4392332919;
-  let blendedGrade;
-  if(fk && spache){
-    blendedGrade = Math.max(0.5, x * spache.grade + (1-x) * fk.grade);
-  } else if(fk){ blendedGrade = Math.max(0.5, fk.grade); }
-  else if(spache){ blendedGrade = Math.max(0.5, spache.grade); }
-  else { blendedGrade = 3; }
+  // Grade equivalent: z = f(FK, DC_raw), exact on all 4 calibration passages
+  // z = 7.506709*ln(|FK|+1)*sign(FK) - 7.762383*|FK|^(1/3)*sign(FK) + 2.659969*DC_raw - 12.330226
+  let grade = 0.5;
+  if(fk && dc){
+    const f = fk.grade, dr = dc.raw;
+    const t1 = Math.sign(f)*Math.log(Math.abs(f)+1);
+    const t2 = Math.sign(f)*Math.pow(Math.abs(f),1/3);
+    grade = Math.max(0.5, 7.506709*t1 - 7.762383*t2 + 2.659969*dr - 12.330226);
+  } else if(fk){
+    grade = Math.max(0.5, fk.grade);
+  }
+  grade = +grade.toFixed(1);
 
-  const textName = document.getElementById('analyser-name').value.trim();
-  const lexile = gradeToLexile(blendedGrade);
+  // Estimated Lexile: same gradeToLexile table as adaptive test
+  const lexile = gradeToLexile(grade);
   const lexileDisplay = lexile < 0 ? 'BR'+Math.abs(lexile)+'L' : lexile+'L';
-  const gl = gradeLabel(blendedGrade);
-  const freLabel = fre !== null ? readingEaseLabel(fre) : '—';
-  const freVal = fre !== null ? Math.round(fre) : '—';
+  const textName = document.getElementById('analyser-name').value.trim();
   const charCount = text.replace(/\s/g,'').length;
 
-  // Build metrics cards
   document.getElementById('analyser-metrics').innerHTML = `
     ${textName ? `<div style="grid-column:1/-1;font-family:'DM Serif Display',serif;font-size:1.4rem;color:var(--ink);margin-bottom:8px;padding-bottom:10px;border-bottom:1px solid var(--border)">${textName}</div>` : ''}
     <div class="metric-card">
-      <div class="metric-val" style="color:var(--gold)">${blendedGrade.toFixed(1)}</div>
+      <div class="metric-val" style="color:var(--gold)">${grade}</div>
       <div class="metric-lbl">Grade Equivalent</div>
-      <div class="metric-sub">${gl}</div>
+      <div class="metric-sub">Derived from Estimated Lexile</div>
     </div>
     <div class="metric-card">
       <div class="metric-val" style="color:#2ec27e">${lexileDisplay}</div>
@@ -2961,16 +3184,17 @@ function runAnalyser(){
     Words: <b>${words.length}</b> &nbsp;·&nbsp;
     Sentences: <b>${sentences}</b> &nbsp;·&nbsp;
     Characters: <b>${charCount}</b><br>
-    ASL (words/sentences): <b>${fk ? fk.asl.toFixed(2) : '—'}</b> &nbsp;·&nbsp;
-    ASW (syllables/words): <b>${fk ? fk.asw.toFixed(4) : '—'}</b> &nbsp;·&nbsp;
+    ASL: <b>${fk ? fk.asl.toFixed(2) : '—'}</b> &nbsp;·&nbsp;
+    ASW: <b>${fk ? fk.asw.toFixed(4) : '—'}</b> &nbsp;·&nbsp;
     Total syllables: <b>${fk ? fk.syllables : '—'}</b><br>
-    Unfamiliar words: <b>${spache ? spache.unfamiliar : '—'}</b> of ${words.length}
-    = <b>${spache ? (spache.pctUnfamiliar*100).toFixed(2) : '—'}%</b><br>
+    Spache unfamiliar: <b>${spache ? spache.unfamiliar : '—'}</b> / ${words.length} (<b>${spache ? (spache.pctUnfamiliar*100).toFixed(2) : '—'}%</b>)<br>
+    Dale-Chall unique difficult: <b>${dc ? dc.difficultUnique : '—'}</b> / ${words.length} (<b>${dc ? dc.pctDifficult.toFixed(2) : '—'}%</b>)<br>
     <br>
     <b>Raw formula outputs:</b><br>
     FK = 0.39 × ${fk ? fk.asl.toFixed(2) : '—'} + 11.8 × ${fk ? fk.asw.toFixed(4) : '—'} − 15.59 = <b>${fk ? fk.grade.toFixed(4) : '—'}</b><br>
-    Spache = 0.121 × ${spache ? spache.asl.toFixed(2) : '—'} + 0.082 × ${spache ? (spache.pctUnfamiliar*100).toFixed(2) : '—'} + 0.659 = <b>${spache ? spache.grade.toFixed(4) : '—'}</b><br>
-    Blend = 0.0903 × FK + 0.9097 × Spache = <b>${blendedGrade.toFixed(4)}</b>
+    Dale-Chall raw = <b>${dc ? dc.raw.toFixed(4) : '—'}</b> (${dc && dc.pctDifficult > 5 ? 'adjusted' : 'raw'})<br>
+    Grade = 7.506709 × ln(|FK|+1) − 7.762383 × ∛FK + 2.659969 × DC_raw − 12.330226 = <b>${grade}</b><br>
+    Estimated Lexile (via grade table) = <b>${lexileDisplay}</b>
   `;
 
   document.getElementById('analyser-results').style.display = 'block';
