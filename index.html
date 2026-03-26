@@ -247,6 +247,23 @@ body::before{
   .results-card{padding:32px 18px}
   .page1-title{font-size:1.9rem}
 }
+
+/* PAGE 6 — TEXT ANALYSER */
+.analyser-card{background:var(--card-bg);border:1px solid var(--border);border-radius:24px;padding:48px;box-shadow:0 4px 32px rgba(26,26,46,.06);width:100%;max-width:760px;}
+.analyser-title{font-family:'DM Serif Display',serif;font-size:1.9rem;margin-bottom:6px}
+.analyser-sub{color:var(--muted);font-size:.9rem;margin-bottom:24px}
+.analyser-textarea{width:100%;min-height:180px;border:2px solid var(--border);border-radius:14px;padding:16px 18px;font-family:'DM Sans',sans-serif;font-size:.93rem;line-height:1.7;color:var(--ink);background:var(--paper);resize:vertical;transition:border-color .2s;outline:none;}
+.analyser-textarea:focus{border-color:#a0a8c0}
+.analyser-actions{display:flex;gap:12px;margin-top:16px;flex-wrap:wrap;align-items:center}
+.analyser-results{margin-top:28px;display:none}
+.analyser-metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:22px}
+.metric-card{background:var(--paper);border:1px solid var(--border);border-radius:14px;padding:16px 18px}
+.metric-val{font-family:'DM Serif Display',serif;font-size:2rem;line-height:1;margin-bottom:4px}
+.metric-lbl{font-size:.72rem;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+.metric-sub{font-size:.78rem;color:var(--muted);margin-top:3px}
+.analyser-breakdown{background:var(--paper);border:1px solid var(--border);border-radius:14px;padding:18px 20px;font-size:.85rem;line-height:1.8;color:#555}
+.analyser-breakdown b{color:var(--ink)}
+.analyser-note{font-size:.78rem;color:var(--muted);margin-top:14px;font-style:italic}
 </style>
 </head>
 <body>
@@ -254,7 +271,7 @@ body::before{
 <header class="site-header">
   <div class="logo">Adapt<span>IQ</span></div>
   <div id="progress-bar-wrap"><div id="progress-bar-fill"></div></div>
-  <div style="width:80px"></div>
+  <button class="btn-ghost" id="analyser-nav-btn" onclick="showAnalyser()" style="font-size:.82rem;padding:7px 16px;border:1.5px solid var(--border);border-radius:30px;background:var(--card-bg);cursor:pointer;font-family:'DM Sans',sans-serif;color:var(--ink);font-weight:500;transition:all .2s;" onmouseover="this.style.borderColor='var(--ink)'" onmouseout="this.style.borderColor='var(--border)'">📊 Text Analyser</button>
 </header>
 
 <!-- PAGE 1: SUBJECT + GRADE -->
@@ -514,6 +531,31 @@ body::before{
   </div>
 </div>
 
+<!-- PAGE 6: TEXT ANALYSER -->
+<div class="page" id="page6">
+  <div class="container" style="max-width:800px">
+    <div class="analyser-card">
+      <button class="btn-ghost" onclick="goToPage1()" style="margin-bottom:20px;font-size:.78rem;">← Back</button>
+      <h2 class="analyser-title">Text Analyser</h2>
+      <p class="analyser-sub">Paste any text below to get its grade equivalent and Lexile measure using the Spache familiar word list and Flesch-Kincaid formula.</p>
+      <div style="margin-bottom:14px">
+        <input type="text" id="analyser-name" placeholder="Text name or title (optional)" style="width:100%;padding:10px 14px;border:2px solid var(--border);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:.88rem;color:var(--ink);background:var(--paper);outline:none;transition:border-color .2s;" onfocus="this.style.borderColor='#a0a8c0'" onblur="this.style.borderColor='var(--border)'"/>
+      </div>
+      <textarea class="analyser-textarea" id="analyser-input" placeholder="Paste your text here…"></textarea>
+      <div class="analyser-actions">
+        <button onclick="runAnalyser()" style="display:inline-flex;align-items:center;gap:10px;padding:14px 34px;border-radius:50px;font-family:'DM Sans',sans-serif;font-size:1rem;font-weight:600;cursor:pointer;border:none;background:var(--ink);color:#fff;box-shadow:0 4px 16px rgba(26,26,46,.2);transition:all .2s;">Analyse Text →</button>
+        <button class="btn-ghost" onclick="document.getElementById('analyser-input').value='';document.getElementById('analyser-name').value='';document.getElementById('analyser-results').style.display='none'">Clear</button>
+        <span id="analyser-word-count" style="font-size:.82rem;color:var(--muted);margin-left:4px"></span>
+      </div>
+      <div class="analyser-results" id="analyser-results">
+        <div class="analyser-metrics" id="analyser-metrics"></div>
+        <div class="analyser-breakdown" id="analyser-breakdown"></div>
+        <p class="analyser-note">Grade equivalent uses a calibrated blend of Flesch-Kincaid (clause-weighted) and Spache readability formulas. Lexile is capped at 2200L. Note: archaic or legal texts (e.g. 19th-century documents) will be underestimated — accurate Lexile scoring for such texts requires a word-frequency corpus not available in this tool.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- CONFIRMATION MODAL -->
 <div id="modal-overlay" style="display:none" onclick="closeModal()">
   <div class="modal-box" onclick="event.stopPropagation()">
@@ -640,7 +682,7 @@ const QBANK = {
     {grade:11,ccss:'HSN-CN.C.9',domain:'algebra',diff:'easy',text:'How many complex roots does a degree-4 polynomial have (counting multiplicity)?',choices:['2','8','3','4'],answer:3},
     {grade:11,ccss:'HSN-CN.A.1',domain:'numbers',diff:'easy',text:'What is the imaginary unit i² equal to?',choices:['1','i','0','−1'],answer:3},
     {grade:11,ccss:'HSN-CN.B.4',domain:'numbers',diff:'medium',text:'A complex number z = 3 + 4i. What is its complex conjugate z̄?',choices:['−3 − 4i','3i + 4','4 + 3i','3 − 4i'],answer:3},
-    {grade:11,ccss:'HSN-CN.C.7',domain:'numbers',diff:'hard',text:'Solve x² + 9 = 0 over the complex numbers.',choices:['x = ±9','x = ±3','x = ±9i','x = ±3i'],answer:3},
+    {grade:9,ccss:'HSN-CN.C.7',domain:'algebra',diff:'hard',text:'Solve x² + 9 = 0 over the complex numbers.',choices:['x = ±9','x = ±3','x = ±9i','x = ±3i'],answer:3},
     {grade:9,ccss:'HSN-CN.A.1',domain:'algebra',diff:'medium',text:'What is (3 + 2i) + (1 − 5i)?',choices:['2 − 3i','4 + 7i','4 − 3i','2 + 3i'],answer:2},
     {grade:10,ccss:'HSN-CN.A.2',domain:'algebra',diff:'easy',text:'What is (2 + 3i)(1 − i)?',choices:['2 − i','5 + i','−1 + 5i','3 + 5i'],answer:1},
     {grade:12,ccss:'HSN-CN.A.3',domain:'algebra',diff:'easy',text:'What is the conjugate of 5 − 2i?',choices:['−5 + 2i','5 + 2i','2 + 5i','−5 − 2i'],answer:1},
@@ -671,7 +713,7 @@ const QBANK = {
     {grade:4,ccss:'4.MD.B.4',domain:'statistics',diff:'easy',text:'A bar graph shows: apples = 8, bananas = 5, oranges = 3, grapes = 8. Which two fruits have the same count?',choices:['Bananas and oranges','Apples and oranges','Bananas and grapes','Apples and grapes'],answer:3},
     {grade:5,ccss:'5.NF.B.4',domain:'numbers',diff:'easy',text:'¾ · ⅔ = ?',choices:['9/12','5/6','2/4','½'],answer:3},
     {grade:8,ccss:'8.EE.A.4',domain:'numbers',diff:'easy',text:'Express 0.000047 in scientific notation.',choices:['47 × 10⁻⁶','4.7 × 10⁻⁵','0.47 × 10⁻⁴','4.7 × 10⁻⁴'],answer:1},
-    {grade:11,ccss:'HSF-TF.B.5b',domain:'algebra',diff:'hard',text:'In triangle ABC, a = 7, b = 10, C = 45°. Using the cosine rule, what is c² (to the nearest whole)?',choices:['45','55','65','51'],answer:3},
+    {grade:12,ccss:'HSF-TF.C.8',domain:'algebra',diff:'hard',text:'In triangle ABC, a = 7, b = 10, C = 45°. Using the cosine rule, what is c² (to the nearest whole)?',choices:['45','55','65','51'],answer:3},
     {grade:9,ccss:'HSG-CO.A.5',domain:'geometry',diff:'easy',text:'A point is rotated 180° about the origin. If the original point is (3, −2), where does it land?',choices:['(3, 2)','(2, −3)','(2, 3)','(−3, 2)'],answer:3},
     {grade:8,ccss:'8.G.C.9g',domain:'geometry',diff:'medium',text:'A sphere fits exactly inside a cube with side length 6 cm. What is the sphere’s volume? (π ≈ 3.14)',choices:['904.32 cm³','150.72 cm³','113.04 cm³','339.12 cm³'],answer:1},
     {grade:8,ccss:'8.G.C.9',domain:'geometry',diff:'medium',text:'A sphere has radius 6 cm. What is its surface area? (SA = 4πr², π ≈ 3.14)',choices:['75.36 cm²','150.72 cm²','904.32 cm²','452.16 cm²'],answer:3},
@@ -704,13 +746,13 @@ const QBANK = {
     {grade:8,ccss:'8.G.C.9b',domain:'geometry',diff:'medium',text:'A sphere has radius 3 cm. What is its volume? (V = 4/3πr³, π ≈ 3.14)',choices:['56.52 cm³','37.68 cm³','113.04 cm³','150.72 cm³'],answer:2},
     {grade:8,ccss:'8.G.C.9e',domain:'geometry',diff:'easy',text:'A cylinder has radius 4 cm and height 5 cm. What is its volume? (π ≈ 3.14)',choices:['125.6 cm³','62.8 cm³','502.4 cm³','251.2 cm³'],answer:3},
     {grade:6,ccss:'6.G.A.2',domain:'geometry',diff:'easy',text:'A rectangular prism has dimensions 3 cm × 4 cm × 5 cm. What is its total surface area?',choices:['60 cm²','70 cm²','80 cm²','94 cm²'],answer:3},
-    {grade:10,ccss:'HSG-SRT.C.6',domain:'geometry',diff:'medium',text:'In a right triangle, sin θ = opposite/hypotenuse. If opposite = 5 and hypotenuse = 13, what is cos θ?',choices:['5/12','5/13','13/12','12/13'],answer:3},
-    {grade:12,ccss:'HSG-SRT.D.11',domain:'geometry',diff:'hard',text:'Using the law of sines: a/sin A = b/sin B. In a triangle, a = 8, A = 30°, B = 45°. What is b?',choices:['4√2','8√3','4√3','8√2'],answer:3},
-    {grade:10,ccss:'HSG-SRT.C.6',domain:'geometry',diff:'medium',text:'In a right triangle, sin θ = opposite/hypotenuse. If opposite = 5 and hypotenuse = 13, what is cos θ?',choices:['5/12','5/13','13/12','12/13'],answer:3},
-    {grade:11,ccss:'HSG-SRT.D.10',domain:'geometry',diff:'hard',text:'In triangle ABC, a = 7, b = 10, C = 45°. Using the cosine rule, what is c² (to the nearest whole)?',choices:['45','55','65','51'],answer:3},
+    {grade:10,ccss:'HSF-TF.A.2',domain:'algebra',diff:'medium',text:'In a right triangle, sin θ = opposite/hypotenuse. If opposite = 5 and hypotenuse = 13, what is cos θ?',choices:['5/12','5/13','13/12','12/13'],answer:3},
+    {grade:12,ccss:'HSF-TF.C.8',domain:'algebra',diff:'hard',text:'Using the law of sines: a/sin A = b/sin B. In a triangle, a = 8, A = 30°, B = 45°. What is b?',choices:['4√2','8√3','4√3','8√2'],answer:3},
+    {grade:10,ccss:'HSF-TF.A.3',domain:'algebra',diff:'medium',text:'If cos θ = 4/5 in the first quadrant, what is sin θ?',choices:['5/4','4/3','3/4','3/5'],answer:3},
+    {grade:12,ccss:'HSF-TF.C.8',domain:'algebra',diff:'medium',text:'In triangle PQR, p = 5, q = 8, R = 60°. Using the law of cosines, what is r²?',choices:['49','47','41','45'],answer:2},
     {grade:12,ccss:'HSG-GPE.A.3',domain:'geometry',diff:'easy',text:'A hyperbola has equation x²/9 − y²/16 = 1. What are its vertices?',choices:['(0, ±4)','(±4, 0)','(0, ±3)','(±3, 0)'],answer:3},
     {grade:2,ccss:'2.MD.A.4',domain:'geometry',diff:'medium',text:'A ruler shows 12 cm. An eraser measures 7 cm. How much longer is the ruler?',choices:['4 cm','6 cm','7 cm','5 cm'],answer:3},
-    {grade:6,ccss:'6.G.A.1',domain:'geometry',diff:'hard',text:'A trapezoid has parallel bases 8 cm and 5 cm, height 4 cm. What is its area?',choices:['23 cm²','24 cm²','22 cm²','26 cm²'],answer:3},
+    {grade:8,ccss:'8.G.A.1',domain:'geometry',diff:'hard',text:'A trapezoid has parallel bases 8 cm and 5 cm, height 4 cm. What is its area?',choices:['23 cm²','24 cm²','22 cm²','26 cm²'],answer:3},
     {grade:7,ccss:'7.RP.A.1',domain:'numbers',diff:'easy',text:'A car travels 210 km in 3 hours. What is the unit rate in km/h?',choices:['60','75','80','70'],answer:3},
     {grade:7,ccss:'7.NS.A.2',domain:'numbers',diff:'easy',text:'(−3) · (−4) + 2 · (−5) = ?',choices:['−2','22','−10','2'],answer:3},
     {grade:7,ccss:'7.SP.C.5',domain:'statistics',diff:'hard',text:'A bag has 4 red, 3 blue, and 5 green marbles. What is P(not red)?',choices:['1/3','1/2','3/4','2/3'],answer:3},
@@ -733,7 +775,7 @@ const QBANK = {
     {grade:11,ccss:'HSA-APR.C.5',domain:'algebra',diff:'easy',text:'Expand (x + 2)³.',choices:['x³+6x²+12x+8','x³+2x²+4x+8','x³+6x²+6x+2','x³+8'],answer:0},
     {grade:11,ccss:'HSF-IF.B.4',domain:'algebra',diff:'medium',text:'f(x) = 2x² − 4x + 7. What is the minimum value of f?',choices:['3','7','1','5'],answer:3},
     {grade:12,ccss:'HSF-IF.C.6',domain:'algebra',diff:'hard',text:'What is the derivative of f(x) = 3x⁴ − 5x² + 7?',choices:['12x³ − 5','3x³ − 10x','12x⁴ − 10x²','12x³ − 10x'],answer:3},
-    {grade:11,ccss:'HSA-REI.C.7',domain:'algebra',diff:'hard',text:'How many distinct real solutions does x⁴ − 5x² + 4 = 0 have?',choices:['2','3','0','4'],answer:3},
+    {grade:12,ccss:'HSA-APR.B.3',domain:'algebra',diff:'hard',text:'How many distinct real solutions does x⁴ − 5x² + 4 = 0 have?',choices:['2','3','0','4'],answer:3},
     {grade:12,ccss:'HSF-BF.A.2',domain:'algebra',diff:'medium',text:'Find Σ(k=1 to 5) of (2k − 1).',choices:['20','30','15','25'],answer:3},
     {grade:2,ccss:'2.MD.D.10',domain:'statistics',diff:'easy',text:'A bar chart shows: Mon = 4, Tue = 7, Wed = 3. What is the total across all three days?',choices:['10','12','15','14'],answer:3},
     {grade:1,ccss:'1.NBT.A.1',domain:'numbers',diff:'easy',text:'What number comes between 29 and 31?',choices:['28','32','29','30'],answer:3},
@@ -750,13 +792,14 @@ const QBANK = {
     {grade:6,ccss:'6.G.A.2',domain:'geometry',diff:'easy',text:'A rectangular prism has length 5 cm, width 3 cm, height 4 cm. What is its volume?',choices:['24 cm³','36 cm³','48 cm³','60 cm³'],answer:3},
     {grade:6,ccss:'6.G.A.3',domain:'geometry',diff:'medium',text:'On a coordinate plane, what is the perimeter of a rectangle with vertices at (1,1), (5,1), (5,4), (1,4)?',choices:['12','16','20','14'],answer:3},
     {grade:1,ccss:'1.G.A.1',domain:'geometry',diff:'easy',text:'A square and a rectangle both have 4 sides. What makes a square special?',choices:['It has more angles','It has curved sides','It has fewer sides','All 4 sides are equal length'],answer:3},
-    {grade:2,ccss:'2.G.A.2',domain:'geometry',diff:'medium',text:'A rectangle is 8 cm long and 3 cm wide. What is its perimeter?',choices:['11 cm','24 cm','16 cm','22 cm'],answer:3},
+    {grade:2,ccss:'2.G.A.3',domain:'geometry',diff:'medium',text:'A rectangle is 8 cm long and 3 cm wide. What is its perimeter?',choices:['11 cm','24 cm','16 cm','22 cm'],answer:3},
     {grade:5,ccss:'5.G.B.4',domain:'geometry',diff:'easy',text:'All rectangles are parallelograms. Is this statement true?',choices:['Only sometimes','Only for squares','No','Yes'],answer:3},
     {grade:8,ccss:'8.G.B.8',domain:'geometry',diff:'medium',text:'What is the distance between (0, 0) and (5, 12)?',choices:['17','60','√17','13'],answer:3},
     {grade:10,ccss:'HSG-GPE.A.2',domain:'geometry',diff:'easy',text:'What is the equation of a parabola with focus at (0, 2) and directrix y = −2?',choices:['y = x²/8','y = 8x²','y = x²/4','x² = 8y'],answer:3},
     {grade:10,ccss:'HSG-GPE.B.7',domain:'geometry',diff:'hard',text:'What is the area of triangle with vertices (0,0), (4,0), (0,3)?',choices:['12 sq units','7 sq units','24 sq units','6 sq units'],answer:3},
-    {grade:11,ccss:'HSG-GPE.A.1',domain:'geometry',diff:'easy',text:'What is the equation of a circle with centre (0,0) and radius 5?',choices:['x + y = 5','x² − y² = 25','x + y = 25','x² + y² = 25'],answer:3},
-    {grade:11,ccss:'HSG-SRT.D.9',domain:'geometry',diff:'easy',text:'In a right triangle with hypotenuse 10 and one leg 6, what is the other leg?',choices:['4','16','√136','8'],answer:3},
+    {grade:10,ccss:'HSG-GPE.A.1',domain:'geometry',diff:'easy',text:'What is the equation of a circle with centre (0,0) and radius 5?',choices:['x + y = 5','x² − y² = 25','x + y = 25','x² + y² = 25'],answer:3},
+    {grade:11,ccss:'HSG-CO.C.11',domain:'geometry',diff:'easy',text:'In a parallelogram, opposite sides are equal. Which theorem justifies this from a proof perspective?',choices:['Triangle inequality theorem','Exterior angle theorem','SSS congruence','Alternate interior angles and ASA congruence'],answer:3},
+    {grade:8,ccss:'8.G.B.7',domain:'geometry',diff:'easy',text:'In a right triangle with hypotenuse 10 and one leg 6, what is the other leg?',choices:['4','16','√136','8'],answer:3},
     {grade:11,ccss:'HSG-GMD.A.1',domain:'geometry',diff:'medium',text:'A cylinder and a cone have the same base radius and height. What is the ratio of their volumes (cylinder:cone)?',choices:['1:3','2:1','1:1','3:1'],answer:3},
     {grade:10,ccss:'HSN-VM.A.1',domain:'algebra',diff:'hard',text:'Vector v = ⟨3, −4⟩. What is |v|?',choices:['1','7','√7','5'],answer:3},
     {grade:11,ccss:'HSG-GPE.A.3',domain:'geometry',diff:'medium',text:'What is the equation of an ellipse with semi-major axis 5 along the x-axis and semi-minor axis 3?',choices:['x²/9 + y²/25 = 1','x²/25 − y²/9 = 1','x²/3 + y²/5 = 1','x²/25 + y²/9 = 1'],answer:3},
@@ -766,13 +809,12 @@ const QBANK = {
     {grade:12,ccss:'HSF-IF.C.6',domain:'algebra',diff:'hard',text:'What is the derivative of f(x) = 3x⁴ − 5x² + 7?',choices:['12x³ − 5','3x³ − 10x','12x⁴ − 10x²','12x³ − 10x'],answer:3},
     {grade:10,ccss:'HSS-CP.B.8',domain:'statistics',diff:'hard',text:'P(A) = 0.3, P(B) = 0.5, P(A∩B) = 0.15. What is P(A|B)?',choices:['0.15','0.5','0.45','0.3'],answer:3},
     {grade:10,ccss:'HSF-TF.A.2',domain:'algebra',diff:'easy',text:'If sin θ = 3/5 in the first quadrant, what is cos θ?',choices:['3/4','5/3','1/5','4/5'],answer:3},
-    {grade:10,ccss:'HSA-APR.D.6',domain:'algebra',diff:'hard',text:'Simplify: (x² − 9) / (x − 3)',choices:['x − 3','x','x² + 3','x + 3'],answer:3},
     {grade:11,ccss:'HSF-IF.C.8',domain:'algebra',diff:'easy',text:'For f(x) = log₂(x), what is f(32)?',choices:['4','6','3','5'],answer:3},
     {grade:11,ccss:'HSA-APR.C.5',domain:'algebra',diff:'easy',text:'Expand (x + 2)³.',choices:['x³+6x²+12x+8','x³+2x²+4x+8','x³+6x²+6x+2','x³+8'],answer:0},
     {grade:0,ccss:'K.G.B.4',domain:'geometry',diff:'easy',text:'Which shape has no corners?',choices:['Square','Triangle','Rectangle','Circle'],answer:3},
     {grade:1,ccss:'1.G.A.2',domain:'geometry',diff:'medium',text:'Which solid shape looks like a can?',choices:['Cube','Sphere','Cone','Cylinder'],answer:3},
     {grade:1,ccss:'1.G.A.3',domain:'geometry',diff:'hard',text:'A circle is folded in half. What shape is each half?',choices:['Rectangle','Triangle','Square','Semicircle'],answer:3},
-    {grade:11,ccss:'HSG-MG.A.1',domain:'geometry',diff:'medium',text:'A sphere has radius 3 cm. What is its volume? (V = 4/3πr³, π ≈ 3.14)',choices:['56.52 cm³','37.68 cm³','113.04 cm³','150.72 cm³'],answer:2},
+    {grade:8,ccss:'8.G.C.9',domain:'geometry',diff:'hard',text:'A sphere has radius 3 cm. What is its volume? (V = 4/3πr³, π ≈ 3.14)',choices:['56.52 cm³','37.68 cm³','113.04 cm³','150.72 cm³'],answer:2},
     {grade:8,ccss:'8.NS.A.1',domain:'numbers',diff:'easy',text:'Which of the following is an irrational number?',choices:['0.75','4/9','√9','√2'],answer:3},
     {grade:8,ccss:'8.NS.A.2',domain:'numbers',diff:'medium',text:'Between which two consecutive integers does √50 lie?',choices:['6 and 7','5 and 6','8 and 9','7 and 8'],answer:3},
     {grade:9,ccss:'HSN-RN.A.2',domain:'numbers',diff:'easy',text:'Simplify: 27^(2/3)',choices:['3','18','6','9'],answer:3},
@@ -820,7 +862,7 @@ const QBANK = {
     {grade:9,ccss:'HSN-RN.A.1',domain:'numbers',diff:'easy',text:'Which expression equals 8^(1/3)?',choices:['8/3','24','3','2'],answer:3},
     {grade:9,ccss:'HSN-RN.A.2',domain:'numbers',diff:'medium',text:'Simplify: (√5)⁴',choices:['20','10','5','25'],answer:3},
     {grade:9,ccss:'HSN-Q.A.1',domain:'numbers',diff:'hard',text:'A rectangle’s area is given as 12.5 cm². The measurement is to 3 significant figures. Which best describes the precision?',choices:['Exact to the nearest integer','Exact to the nearest 10','Exact to nearest 0.001','Precise to the nearest 0.1 cm²'],answer:3},
-    {grade:10,ccss:'HSN-Q.A.3',domain:'numbers',diff:'medium',text:'A speed is measured as 60 mph with a ±2 mph error. What is the percentage error?',choices:['2%','4%','3%','5%'],answer:2},
+    {grade:10,ccss:'HSN-Q.A.3',domain:'numbers',diff:'medium',text:'A speed is measured as 60 mph with a ±2 mph error. What is the approximate percentage error?',choices:['2%','4%','3%','5%'],answer:2},
     {grade:10,ccss:'HSN-Q.A.2',domain:'numbers',diff:'hard',text:'A model uses the unit “person-hours.” A project needs 240 person-hours. If 6 people work together, how many hours will it take?',choices:['30 hours','50 hours','60 hours','40 hours'],answer:3},
     {grade:12,ccss:'HSN-VM.C.9',domain:'numbers',diff:'hard',text:'Matrix multiplication: [[1,0],[0,1]] × [[3,4],[5,6]] = ?',choices:['[[3,4],[5,6]]','[[1,0],[0,1]]','[[4,4],[6,6]]','[[3,0],[0,6]]'],answer:0},
     {grade:0,ccss:'K.MD.A.1',domain:'statistics',diff:'easy',text:'Which is heavier — a feather or a brick?',choices:['A feather','They weigh the same','Cannot tell','A brick'],answer:3},
@@ -835,7 +877,7 @@ const QBANK = {
     {grade:4,ccss:'4.G.A.3',domain:'geometry',diff:'easy',text:'A line of symmetry divides a shape into:',choices:['Unequal halves','Perpendicular parts','Four equal parts','Two mirror-image halves'],answer:3},
     {grade:7,ccss:'7.G.A.1',domain:'geometry',diff:'easy',text:'A map uses a scale of 1 cm : 50 km. A road is 3.5 cm on the map. How long is the actual road?',choices:['150 km','50 km','100 km','175 km'],answer:3},
     {grade:8,ccss:'8.G.A.5',domain:'geometry',diff:'easy',text:'Two parallel lines are cut by a transversal. Alternate interior angles are:',choices:['Supplementary','Complementary','Right angles','Equal'],answer:3},
-    {grade:9,ccss:'HSG-CO.C.10',domain:'geometry',diff:'easy',text:'The sum of interior angles of any triangle is:',choices:['90°','270°','360°','180°'],answer:3},
+    {grade:9,ccss:'HSG-CO.C.9',domain:'geometry',diff:'easy',text:'Two parallel lines are cut by a transversal. Which pair of angles are always equal?',choices:['Co-interior angles','Supplementary angles','Adjacent angles','Alternate interior angles'],answer:3},
     {grade:12,ccss:'HSG-GMD.A.3',domain:'geometry',diff:'easy',text:'A pyramid has a square base of side 4 cm and height 6 cm. What is its volume? (V = ⅓Bh)',choices:['32 cm³','48 cm³','96 cm³','24 cm³'],answer:0},
     {grade:12,ccss:'HSF-IF.C.7',domain:'algebra',diff:'medium',text:'What is ∫(6x² − 4x + 1)dx?',choices:['6x³ − 4x² + x + C','2x³ − 2x + C','3x² − 2 + C','2x³ − 2x² + x + C'],answer:3},
     {grade:5,ccss:'5.MD.B.2',domain:'statistics',diff:'hard',text:'Data: 3, 5, 5, 7, 10. What is the range?',choices:['3','5','9','7'],answer:3},
@@ -843,6 +885,12 @@ const QBANK = {
     {grade:12,ccss:'HSF-BF.B.4',domain:'algebra',diff:'easy', text:'If f(x) = 2x + 3, what is f⁻¹(x)?', choices:['(x + 3)/2','2x − 3','(x + 2)/3','(x − 3)/2'],answer:3},
     {grade:12,ccss:'HSA-APR.B.2',domain:'algebra',diff:'hard', text:'By the Remainder Theorem, the remainder when p(x) is divided by (x − 3) is:', choices:['p(−3)','p(0)','p(1/3)','p(3)'],answer:3},
     {grade:12,ccss:'HSF-IF.C.7',domain:'algebra',diff:'hard', text:'Evaluate: lim(x→0) [sin(3x) / x].', choices:['0','1','∞','3'],answer:3},
+    {grade:12,ccss:'HSF-IF.C.7c',domain:'algebra',diff:'hard', text:'Evaluate ∫₀² (3x² + 2x) dx.',choices:['14','10','16','12'],answer:3},
+    {grade:12,ccss:'HSF-IF.C.7d',domain:'algebra',diff:'hard', text:'Use integration by parts to find ∫ x eˣ dx.',choices:['eˣ + C','x²eˣ + C','eˣ(x − 1) + C','eˣ(x + 1) + C'],answer:3},
+    {grade:12,ccss:'HSF-IF.C.7e',domain:'algebra',diff:'hard', text:'Evaluate ∫ sin²(x) dx using the identity sin²x = (1 − cos 2x)/2.',choices:['x/2 − sin(2x)/4 + C','sin(2x)/2 + C','−cos²(x) + C','x/2 + sin(2x)/4 + C'],answer:0},
+    {grade:12,ccss:'HSF-IF.C.7f',domain:'algebra',diff:'hard', text:'Evaluate ∫ 1/(x² − 1) dx using partial fractions.',choices:['ln|x+1| − ln|x−1| + C','½ ln|x+1| + C','½ ln|(x−1)/(x+1)| + C','ln|x²−1| + C'],answer:2},
+    {grade:12,ccss:'HSF-IF.C.7g',domain:'algebra',diff:'hard', text:'Evaluate ∫ x/(x² + 1) dx.',choices:['arctan(x) + C','ln(x² + 1) + C','x²/2 + C','½ ln(x² + 1) + C'],answer:3},
+    {grade:12,ccss:'HSF-IF.C.7h',domain:'algebra',diff:'hard', text:'Use u-substitution to evaluate ∫ 2x(x² + 3)⁴ dx.',choices:['(x²+3)⁵/4 + C','8x²(x²+3)³ + C','(x²+3)⁵/10 + C','(x²+3)⁵/5 + C'],answer:3},
     {grade:12,ccss:'HSF-BF.A.2',domain:'algebra',diff:'hard', text:'Sum of infinite geometric series: 8 + 4 + 2 + 1 + … = ?', choices:['12','20','10','16'],answer:3},
     {grade:12,ccss:'HSS-IC.B.6',domain:'statistics',diff:'hard', text:'A study shows r = −0.92 between study hours and exam errors. What does this indicate?', choices:['Weak positive correlation','No correlation','Strong positive correlation','Strong negative correlation'],answer:3},
     {grade:0,ccss:'K.CC.B.4',domain:'numbers',diff:'easy', text:'Count the dots: • • • • . How many dots are there?', choices:['3','5','4','6'],answer:2},
@@ -870,11 +918,17 @@ const QBANK = {
     {grade:10,ccss:'HSA-APR.B.3',domain:'algebra',diff:'easy', text:'What are the zeros of f(x) = x³ − 4x?', choices:['x = 0, 2','x = −4, 0, 4','x = 0, 4','x = −2, 0, 2'],answer:3},
     {grade:11,ccss:'HSF-IF.B.4',domain:'algebra',diff:'medium', text:'f(x) = 2x² − 4x + 7. What is the minimum value of f?', choices:['3','7','1','5'],answer:3},
     {grade:11,ccss:'HSF-IF.C.7',domain:'algebra',diff:'hard', text:'What is the derivative of f(x) = 3x⁴ − 5x² + 7?', choices:['12x³ − 5','3x³ − 10x','12x⁴ − 10x²','12x³ − 10x'],answer:3},
-    {grade:11,ccss:'HSA-REI.C.7',domain:'algebra',diff:'hard', text:'How many distinct real solutions does x⁴ − 5x² + 4 = 0 have?', choices:['2','3','0','4'],answer:3},
+    {grade:12,ccss:'HSA-APR.B.3',domain:'algebra',diff:'hard', text:'How many distinct real solutions does x⁴ − 5x² + 4 = 0 have?', choices:['2','3','0','4'],answer:3},
     {grade:12,ccss:'HSF-BF.B.4',domain:'algebra',diff:'easy', text:'If f(x) = 2x + 3, what is f⁻¹(x)?', choices:['(x + 3)/2','2x − 3','(x + 2)/3','(x − 3)/2'],answer:3},
     {grade:12,ccss:'HSF-BF.A.2',domain:'algebra',diff:'medium', text:'Find Σ(k=1 to 5) of (2k − 1).', choices:['20','30','15','25'],answer:3},
     {grade:12,ccss:'HSF-IF.C.7',domain:'algebra',diff:'medium', text:'What is ∫(6x² − 4x + 1)dx?', choices:['6x³ − 4x² + x + C','2x³ − 2x + C','3x² − 2 + C','2x³ − 2x² + x + C'],answer:3},
     {grade:12,ccss:'HSF-IF.C.7',domain:'algebra',diff:'hard', text:'Evaluate: lim(x→0) [sin(3x) / x].', choices:['0','1','∞','3'],answer:3},
+    {grade:12,ccss:'HSF-IF.C.7c',domain:'algebra',diff:'hard', text:'Evaluate ∫₀² (3x² + 2x) dx.',choices:['14','10','16','12'],answer:3},
+    {grade:12,ccss:'HSF-IF.C.7d',domain:'algebra',diff:'hard', text:'Use integration by parts to find ∫ x eˣ dx.',choices:['eˣ + C','x²eˣ + C','eˣ(x − 1) + C','eˣ(x + 1) + C'],answer:3},
+    {grade:12,ccss:'HSF-IF.C.7e',domain:'algebra',diff:'hard', text:'Evaluate ∫ sin²(x) dx using the identity sin²x = (1 − cos 2x)/2.',choices:['x/2 − sin(2x)/4 + C','sin(2x)/2 + C','−cos²(x) + C','x/2 + sin(2x)/4 + C'],answer:0},
+    {grade:12,ccss:'HSF-IF.C.7f',domain:'algebra',diff:'hard', text:'Evaluate ∫ 1/(x² − 1) dx using partial fractions.',choices:['ln|x+1| − ln|x−1| + C','½ ln|x+1| + C','½ ln|(x−1)/(x+1)| + C','ln|x²−1| + C'],answer:2},
+    {grade:12,ccss:'HSF-IF.C.7g',domain:'algebra',diff:'hard', text:'Evaluate ∫ x/(x² + 1) dx.',choices:['arctan(x) + C','ln(x² + 1) + C','x²/2 + C','½ ln(x² + 1) + C'],answer:3},
+    {grade:12,ccss:'HSF-IF.C.7h',domain:'algebra',diff:'hard', text:'Use u-substitution to evaluate ∫ 2x(x² + 3)⁴ dx.',choices:['(x²+3)⁵/4 + C','8x²(x²+3)³ + C','(x²+3)⁵/10 + C','(x²+3)⁵/5 + C'],answer:3},
     {grade:12,ccss:'HSF-BF.A.2',domain:'algebra',diff:'hard', text:'Sum of infinite geometric series: 8 + 4 + 2 + 1 + … = ?', choices:['12','20','10','16'],answer:3},
     {grade:0,ccss:'K.MD.B.3',domain:'statistics',diff:'easy',text:'You have 3 red balls and 2 blue balls. Which colour has more?',choices:['Blue','They are equal','Cannot tell','Red'],answer:3},
     {grade:0,ccss:'K.MD.B.3',domain:'statistics',diff:'medium',text:'A class has 4 cats, 2 dogs, and 3 fish. Which pet does the class have the most of?',choices:['Dogs','Fish','All the same','Cats'],answer:3},
@@ -911,8 +965,8 @@ const QBANK = {
     {grade:0,ccss:'K.G.B.4',domain:'geometry',diff:'hard',text:'How many corners does a rectangle have?',choices:['3','2','6','4'],answer:3},
     {grade:1,ccss:'1.G.A.1',domain:'geometry',diff:'easy',text:'Which shape has no corners?',choices:['Square','Triangle','Rectangle','Circle'],answer:3},
     {grade:1,ccss:'1.G.A.2',domain:'geometry',diff:'medium',text:'How many faces does a cube have?',choices:['4','8','5','6'],answer:3},
-    {grade:2,ccss:'2.G.A.2',domain:'geometry',diff:'easy',text:'What is the perimeter of a rectangle 4 cm long and 3 cm wide?',choices:['7 cm','12 cm','24 cm','14 cm'],answer:3},
-    {grade:2,ccss:'2.G.A.2',domain:'geometry',diff:'medium',text:'What is the area of a rectangle 4 cm long and 3 cm wide?',choices:['14 cm²','7 cm²','24 cm²','12 cm²'],answer:3},
+    {grade:2,ccss:'2.G.A.1',domain:'geometry',diff:'easy',text:'What is the perimeter of a rectangle 4 cm long and 3 cm wide?',choices:['7 cm','12 cm','24 cm','14 cm'],answer:3},
+    {grade:2,ccss:'2.G.A.2',domain:'geometry',diff:'medium',text:'A rectangle is divided into 4 equal rows and 3 equal columns. How many equal squares is it partitioned into?',choices:['7','8','10','12'],answer:3},
     {grade:3,ccss:'3.MD.C.7',domain:'geometry',diff:'easy',text:'What is the area of a square with side 3 cm?',choices:['6 cm²','12 cm²','16 cm²','9 cm²'],answer:3},
     {grade:3,ccss:'3.MD.D.8',domain:'geometry',diff:'medium',text:'What is the perimeter of a square with side 5 cm?',choices:['10 cm','25 cm','15 cm','20 cm'],answer:3},
     {grade:0,ccss:'K.MD.B.3',domain:'statistics',diff:'easy',text:'There are 4 red balls and 2 blue balls. Which colour has more?',choices:['Blue','They are equal','Neither','Red'],answer:3},
@@ -967,48 +1021,48 @@ const QBANK = {
   reading: [
     {grade:11,ccss:'RL.11-12.6',domain:'comprehension_fiction',diff:'hard',passage:'The coloniser’s language sat in Adaeze’s mouth like a borrowed coat — useful, necessary, and never quite her own. She wrote her novels in it, knowing every beautiful sentence was also a small capitulation.',text:'What tension does the passage explore?',choices:['Whether Adaeze should write at all','The paradox of using the coloniser’s language as a tool of self-expression','Whether borrowed coats are comfortable','The difficulty of translation between languages'],answer:1},
     {grade:11,ccss:'RI.11-12.6',domain:'comprehension_nonfiction',diff:'hard',passage:'Wittgenstein argued in his later work that meaning is not a private mental state but a product of public use. A word means what it does because of how a community uses it — outside that social practice, the word is merely noise.',text:'What is the key implication of Wittgenstein’s theory of meaning?',choices:['Language is innate and universal','Meaning is fixed by a dictionary','Meaning is constituted by social practice, not private mental content','Words have no meaning without images'],answer:2},
-    {grade:4,ccss:'RI.4.6',domain:'comprehension_nonfiction',diff:'medium',passage:'The Underground Railroad was a network of secret routes and safe houses used by enslaved African Americans to escape to free states and Canada. Conductors like Harriet Tubman risked their lives guiding others to freedom.',text:'What does the passage imply about the courage required to be a conductor?',choices:['Conductors were protected by law','Most conductors were never discovered','The work was done openly in daylight','Conductors risked their own freedom to help others escape'],answer:3},
-    {grade:11,ccss:'11-12.RI.2',domain:'comprehension_nonfiction',diff:'medium',passage:'Keynes argued that in a recession, individuals saving money is rational behaviour that collectively makes the problem worse — the “paradox of thrift.” If everyone saves simultaneously, demand collapses, businesses fail, and savings become worthless anyway.',text:'What makes the paradox of thrift a “paradox”?',choices:['Saving money is always economically irrational regardless of circumstances','Keynes directly contradicts his own earlier theoretical position','Only national governments have the capacity to intervene effectively','What is rational for an individual becomes destructive when everyone does it simultaneously'],answer:3},
-    {grade:10,ccss:'RI.9-10.8',domain:'comprehension_nonfiction',diff:'hard',passage:'Classical economics assumes people make rational decisions that maximise their utility. Behavioural economists like Kahneman have shown that humans systematically deviate from rationality — we are loss-averse, susceptible to framing effects, and influenced by irrelevant anchors.',text:'What is the central challenge behavioural economics poses to classical economics?',choices:['It proves markets always fail','It shows that humans are fundamentally irrational, making economic modelling impossible','It reveals that the rational actor model is an incomplete description of real human decision-making','It argues that psychology should replace economics entirely'],answer:2},
+    {grade:4,ccss:'RI.4.6',domain:'comprehension_nonfiction',diff:'medium',passage:'The Underground Railroad was a network of secret routes and safe houses used by enslaved African Americans to escape to free states and Canada. Conductors like Harriet Tubman risked their lives guiding others to freedom.',text:'What does the passage imply about the courage required to be a conductor?',choices:['Conductors were protected by law','Conductors relied on legal protections to shield their activities','The work was done openly in daylight','Conductors risked their own freedom to help others escape'],answer:3},
+    {grade:11,ccss:'11-12.RI.2',domain:'comprehension_nonfiction',diff:'medium',passage:'Keynes argued that in a recession, individuals saving money is rational behaviour that collectively makes the problem worse — the “paradox of thrift.” If everyone saves simultaneously, demand collapses, businesses fail, and savings become worthless anyway.',text:'What makes the paradox of thrift a “paradox”?',choices:['Saving money during a recession is more harmful than beneficial to individuals','Keynes directly contradicts his own earlier theoretical position','Only national governments have the capacity to intervene effectively','What is rational for an individual becomes destructive when everyone does it simultaneously'],answer:3},
+    {grade:10,ccss:'RI.9-10.8',domain:'comprehension_nonfiction',diff:'hard',passage:'Classical economics assumes people make rational decisions that maximise their utility. Behavioural economists like Kahneman have shown that humans systematically deviate from rationality — we are loss-averse, susceptible to framing effects, and influenced by irrelevant anchors.',text:'What is the central challenge behavioural economics poses to classical economics?',choices:['It demonstrates that market incentives consistently lead to poor decisions','It suggests that psychological factors undermine the value of economic models entirely','It reveals that the rational actor model is an incomplete description of real human decision-making','It argues that psychology should replace economics entirely'],answer:2},
     {grade:11,ccss:'11-12.L.4',domain:'vocabulary',diff:'hard',text:'What does “laconic” mean?',choices:['richly and warmly expressive','deeply and intricately complex','elaborately and excessively ornate','using very few words; brief and concise'],answer:3},
-    {grade:11,ccss:'11-12.RI.6',domain:'comprehension_nonfiction',diff:'medium',passage:'Arrow’s impossibility theorem proves that no voting system can simultaneously satisfy all of a small set of fairness conditions: if there are three or more candidates, there is no procedure for combining individual preference rankings into a consistent social ordering that meets all the criteria.',text:'What is the deepest implication of Arrow’s impossibility theorem?',choices:['Democratic systems are always and irreparably corrupt in practice','Majority rule is always the fairest available method','Individual preferences can always be combined into a consistent social preference','There is no perfect procedure for translating individual preferences into a consistent collective decision'],answer:3},
+    {grade:11,ccss:'11-12.RI.6',domain:'comprehension_nonfiction',diff:'medium',passage:'Arrow’s impossibility theorem proves that no voting system can simultaneously satisfy all of a small set of fairness conditions: if there are three or more candidates, there is no procedure for combining individual preference rankings into a consistent social ordering that meets all the criteria.',text:'What is the deepest implication of Arrow’s impossibility theorem?',choices:['Democratic systems tend to produce outcomes that favour well-organised interest groups','Majority rule satisfies all the relevant fairness conditions when applied consistently','Individual preferences can usually be combined into a consistent social ordering','There is no perfect procedure for translating individual preferences into a consistent collective decision'],answer:3},
     {grade:7,ccss:'7.L.4',domain:'vocabulary',diff:'easy',text:'Which word means “newly emerging or just beginning to develop”?',choices:['ancient','established','declining','nascent'],answer:3},
     {grade:9,ccss:'9-10.L.4',domain:'vocabulary',diff:'easy',text:'Which word most precisely means “emerging and not yet fully developed”?',choices:['ancient','established','declining','nascent'],answer:3},
-    {grade:10,ccss:'9-10.L.6',domain:'vocabulary',diff:'medium',text:'What does “pragmatic” mean in an academic context?',choices:['purely idealistic and broadly sweeping in overall','overly emotional and largely and deeply impulsive','entirely abstract and purely and deeply theoretical','focused on practical results rather than principles'],answer:3},
+    {grade:10,ccss:'9-10.L.6',domain:'vocabulary',diff:'medium',text:'What does “pragmatic” mean in an academic context?',choices:['guided primarily by abstract principles over outcomes','concerned mainly with emotional and interpersonal dynamics','theoretical in orientation, prioritising concepts over results','focused on practical results rather than principles'],answer:3},
     {grade:1,ccss:'1.L.4',domain:'vocabulary',diff:'easy',text:'Which word means “very happy”?',choices:['gloomy','sleepy','grumpy','joyful'],answer:3},
     {grade:1,ccss:'1.L.1',domain:'vocabulary',diff:'medium',text:'Which sentence is written correctly?',choices:['the dog run fast.','The dog run fast.','the Dog runs fast.','The dog runs fast.'],answer:3},
-    {grade:4,ccss:'4.L.4',domain:'vocabulary',diff:'medium',text:'What does “courageous” mean?',choices:['clever but never truly brave','gentle but never truly bold','reckless but never truly brave','brave in the face of danger'],answer:3},
+    {grade:4,ccss:'4.L.4',domain:'vocabulary',diff:'medium',text:'What does “courageous” mean?',choices:['bold in speech but cautious in action','calm and steady in difficult situations','daring without concern for risk or consequence','brave in the face of danger'],answer:3},
     {grade:4,ccss:'4.L.4',domain:'vocabulary',diff:'medium',text:'What does “compassionate” mean?',choices:['quick to judge others harshly','unable to feel strong emotions','uninterested in others’ problems','feeling concern and sympathy for others'],answer:3},
     {grade:11,ccss:'11-12.L.3',domain:'vocabulary',diff:'hard',text:'Choose the BEST word: “The historian’s thesis was _____, weaving economic data, literary sources, and archaeological evidence into one unified argument.”',choices:['parochial','reductive','redundant','interdisciplinary'],answer:3},
-    {grade:11,ccss:'11-12.L.3',domain:'vocabulary',diff:'hard',text:'What does “ostensible” mean?',choices:['deeply and genuinely sincere','deliberately hidden from view','entirely false and fabricated','apparently true but possibly not so'],answer:3},
-    {grade:10,ccss:'10.RI.6',domain:'comprehension_nonfiction',diff:'hard',passage:'In Orwell’s Nineteen Eighty-Four, “doublethink” is the capacity to hold two contradictory beliefs simultaneously and accept both. Unlike ordinary hypocrisy, where a person knows they are being dishonest, doublethink operates below conscious awareness — the practitioner genuinely believes both things at once. This makes it a more effective instrument of control: rebellion becomes unthinkable because the cognitive tools needed to detect contradiction have been erased.',text:'What is the most important distinction between doublethink and ordinary hypocrisy?',choices:['Hypocrisy is always state-enforced; doublethink remains entirely self-generated','Doublethink is always an internal contradiction that requires very deliberate effort','Doublethink is a targeted condition and only affects well-educated intellectuals','Doublethink operates below awareness, removing the capacity to recognise contradiction'],answer:3},
-    {grade:10,ccss:'10.RI.6',domain:'comprehension_nonfiction',diff:'hard',passage:'The Sapir-Whorf hypothesis proposes that the language you speak shapes the categories you use to perceive the world. In its strong form, language determines thought: speakers of different languages literally perceive reality differently. In its weaker form, language influences but does not determine thought. Empirical studies have found support for the weak version — for instance, languages with more colour terms correlate with finer colour discrimination — but the strong version remains contested.',text:'The Sapir-Whorf hypothesis proposes that language shapes thought. What is the most significant implication of this view?',choices:['All languages are equally limited in what they can express','Grammar has no influence on how speakers perceive the world','Translation between languages is fundamentally impossible','The categories available in a language constrain how its speakers perceive reality'],answer:3},
-    {grade:11,ccss:'11-12.RI.6',domain:'comprehension_nonfiction',diff:'hard',passage:'Economists distinguish “positive” statements — testable descriptions of reality — from “normative” statements that prescribe how the world ought to be. Positive statements can be verified or falsified by evidence; normative statements cannot, because they rest on value judgements rather than facts. The distinction matters for policy debates: disagreements about what the economy “should” do often persist not because of missing evidence but because the underlying values differ.',text:'Why can normative statements not be empirically tested?',choices:['They clearly and directly describe observable and measurable factual claims','They are consistently too simple to be tested empirically','They merely duplicate what all existing positive statements already say','They rest on value judgements, not facts that can be measured or observed'],answer:3},
-    {grade:11,ccss:'11-12.RI.6',domain:'comprehension_nonfiction',diff:'hard',passage:'Arrow’s impossibility theorem proves that no voting system can simultaneously satisfy all of a small set of fairness conditions when there are three or more candidates. The conditions — unanimity, independence of irrelevant alternatives, and non-dictatorship — seem individually reasonable, yet Arrow proved they are collectively impossible to satisfy. The theorem implies that every democratic voting procedure must sacrifice at least one intuitive notion of fairness.',text:'Arrow’s impossibility theorem demonstrates that no voting system can simultaneously satisfy all fairness criteria. What is the deepest implication of this result?',choices:['Democracy is always inherently and irreparably corrupt','Majority rule is always the fairest available method','Individual preferences can always be aggregated into a consistent social preference','There is no perfect procedure for translating individual preferences into collective decisions'],answer:3},
-    {grade:10,ccss:'10.RI.6',domain:'comprehension_nonfiction',diff:'hard',passage:'Isaiah Berlin distinguished negative liberty — freedom from external interference — from positive liberty — the capacity to act according to one’s rational will. Berlin warned that positive liberty is vulnerable to abuse: authorities can claim to know citizens’ “true” rational interests and use this to justify coercion, insisting they are “reallyˮ making citizens freer. Negative liberty, he argued, is a safer foundation for a liberal political order.',text:'Why did Berlin consider positive liberty potentially dangerous?',choices:['It is functionally identical to negative liberty','It completely denies every individual autonomous action','It only prioritises freedom from external interference','It can justify coercion by claiming to serve citizens’ “true” interests'],answer:3},
-    {grade:10,ccss:'10.RI.6',domain:'comprehension_nonfiction',diff:'hard',passage:'John Rawls proposed that principles of justice should be chosen behind a “veil of ignorance” — a hypothetical position in which individuals do not know their place in society, their class, their wealth, or their natural abilities. Rawls argued that rational agents in this original position would choose principles ensuring basic liberties for all and arranging inequalities to benefit the least advantaged members of society.',text:'Rawls argues that principles of justice should be chosen behind a “veil of ignorance.” What does this device achieve?',choices:['It ensures only philosophers design political systems','It guarantees the most productive economic outcome','It removes all personal interest from political decisions','It ensures principles are chosen without knowledge of one’s own social position'],answer:3},
+    {grade:11,ccss:'11-12.L.3',domain:'vocabulary',diff:'hard',text:'What does “ostensible” mean?',choices:['deeply and genuinely sincere','deliberately hidden from view','plausible-sounding but internally contradictory','apparently true but possibly not so'],answer:3},
+    {grade:10,ccss:'10.RI.6',domain:'comprehension_nonfiction',diff:'hard',passage:'In Orwell’s Nineteen Eighty-Four, “doublethink” is the capacity to hold two contradictory beliefs simultaneously and accept both. Unlike ordinary hypocrisy, where a person knows they are being dishonest, doublethink operates below conscious awareness — the practitioner genuinely believes both things at once. This makes it a more effective instrument of control: rebellion becomes unthinkable because the cognitive tools needed to detect contradiction have been erased.',text:'What is the most important distinction between doublethink and ordinary hypocrisy?',choices:['Hypocrisy involves the same cognitive structure as doublethink but operates consciously','Doublethink is a deliberate strategy people adopt to manage conflicting beliefs','Doublethink is a targeted condition and only affects well-educated intellectuals','Doublethink operates below awareness, removing the capacity to recognise contradiction'],answer:3},
+    {grade:10,ccss:'10.RI.6',domain:'comprehension_nonfiction',diff:'hard',passage:'The Sapir-Whorf hypothesis proposes that the language you speak shapes the categories you use to perceive the world. In its strong form, language determines thought: speakers of different languages literally perceive reality differently. In its weaker form, language influences but does not determine thought. Empirical studies have found support for the weak version — for instance, languages with more colour terms correlate with finer colour discrimination — but the strong version remains contested.',text:'The Sapir-Whorf hypothesis proposes that language shapes thought. What is the most significant implication of this view?',choices:['Languages differ mainly in grammar and vocabulary, but not in how speakers perceive reality','Grammar has no influence on how speakers perceive the world','Translation between languages is severely limited because each encodes a unique worldview','The categories available in a language constrain how its speakers perceive reality'],answer:3},
+    {grade:11,ccss:'11-12.RI.6',domain:'comprehension_nonfiction',diff:'hard',passage:'Economists distinguish “positive” statements — testable descriptions of reality — from “normative” statements that prescribe how the world ought to be. Positive statements can be verified or falsified by evidence; normative statements cannot, because they rest on value judgements rather than facts. The distinction matters for policy debates: disagreements about what the economy “should” do often persist not because of missing evidence but because the underlying values differ.',text:'Why can normative statements not be empirically tested?',choices:['They clearly and directly describe observable and measurable factual claims','They describe general tendencies rather than precise causal claims','They are a special subset of positive statements that resist falsification','They rest on value judgements, not facts that can be measured or observed'],answer:3},
+    {grade:11,ccss:'11-12.RI.6',domain:'comprehension_nonfiction',diff:'hard',passage:'Arrow’s impossibility theorem proves that no voting system can simultaneously satisfy all of a small set of fairness conditions when there are three or more candidates. The conditions — unanimity, independence of irrelevant alternatives, and non-dictatorship — seem individually reasonable, yet Arrow proved they are collectively impossible to satisfy. The theorem implies that every democratic voting procedure must sacrifice at least one intuitive notion of fairness.',text:'Arrow’s impossibility theorem demonstrates that no voting system can simultaneously satisfy all fairness criteria. What is the deepest implication of this result?',choices:['Democratic systems tend to favour the preferences of organised minorities','Majority rule satisfies all the relevant fairness conditions when applied consistently','Individual preferences can typically be aggregated without losing consistency','There is no perfect procedure for translating individual preferences into collective decisions'],answer:3},
+    {grade:10,ccss:'10.RI.6',domain:'comprehension_nonfiction',diff:'hard',passage:'Isaiah Berlin distinguished negative liberty — freedom from external interference — from positive liberty — the capacity to act according to one’s rational will. Berlin warned that positive liberty is vulnerable to abuse: authorities can claim to know citizens’ “true” rational interests and use this to justify coercion, insisting they are “reallyˮ making citizens freer. Negative liberty, he argued, is a safer foundation for a liberal political order.',text:'Why did Berlin consider positive liberty potentially dangerous?',choices:['It is functionally identical to negative liberty','It restricts individual freedom by requiring conformity to collective goals','It only prioritises freedom from external interference','It can justify coercion by claiming to serve citizens’ “true” interests'],answer:3},
+    {grade:10,ccss:'10.RI.6',domain:'comprehension_nonfiction',diff:'hard',passage:'John Rawls proposed that principles of justice should be chosen behind a “veil of ignorance” — a hypothetical position in which individuals do not know their place in society, their class, their wealth, or their natural abilities. Rawls argued that rational agents in this original position would choose principles ensuring basic liberties for all and arranging inequalities to benefit the least advantaged members of society.',text:'Rawls argues that principles of justice should be chosen behind a “veil of ignorance.” What does this device achieve?',choices:['It produces principles that maximise overall social welfare rather than individual rights','It guarantees the most productive economic outcome','It removes all personal interest from political decisions','It ensures principles are chosen without knowledge of one’s own social position'],answer:3},
     {grade:12,ccss:'12.RI.6',domain:'comprehension_fiction',diff:'hard',passage:'Postmodern literary theory challenges the assumption that texts carry a fixed, objective meaning. Roland Barthes argued for “the death of the author” — the claim that once a text is written, the author’s intentions are irrelevant to its meaning. Meaning is not deposited in a text by its author but is produced by readers, who bring their own contexts and frameworks to every act of reading. This shifted critical attention from the biography of the writer to the activity of reading itself.',text:'What assumption about literary interpretation does Barthes’ claim challenge?',choices:['The broad contextual historical study of how literary movements have emerged','The physical and technical means of producing and publishing written texts','The broader question of whether any given literary interpretation can be valid','The belief that the author’s intended meaning is the authoritative reading'],answer:3},
     {grade:12,ccss:'12.RI.6',domain:'comprehension_fiction',diff:'hard',passage:'Derrida introduced the concept of “différance” — the idea that meaning in language is never fully present but is always produced through the difference between signs and the endless deferral of any final meaning. Every word gains meaning only by differing from other words, and that meaning is never complete. Derrida used this to argue that texts can never have a single, stable interpretation and that any reading inevitably suppresses other possible meanings.',text:'Derrida argues that meaning in language is produced through “différance” — the endless deferral of a final fixed meaning. What does this imply for literary interpretation?',choices:['Every text has one correct reading that careful study will eventually uncover','Authors retain full authority over what their texts mean','Language is incapable of communicating anything reliably','No reading is ever final; meaning is always deferred and context-dependent'],answer:3},
-    {grade:4,ccss:'4.L.4',domain:'vocabulary',diff:'medium',text:'What does “courageous” mean?',choices:['clever but never truly brave','gentle but never truly bold','reckless but never truly brave','brave in the face of danger'],answer:3},
+    {grade:4,ccss:'4.L.4',domain:'vocabulary',diff:'medium',text:'What does “courageous” mean?',choices:['bold in speech but cautious in action','calm and steady in difficult situations','daring without concern for risk or consequence','brave in the face of danger'],answer:3},
     {grade:4,ccss:'4.L.4',domain:'vocabulary',diff:'medium',text:'What does “compassionate” mean?',choices:['quick to judge others harshly','unable to feel strong emotions','uninterested in others’ problems','feeling concern and sympathy for others'],answer:3},
     {grade:11,ccss:'11-12.L.3',domain:'vocabulary',diff:'hard',text:'Choose the BEST word: “The historian’s thesis was _____, weaving economic data, literary sources, and archaeological evidence into one unified argument.”',choices:['parochial','reductive','redundant','interdisciplinary'],answer:3},
-    {grade:11,ccss:'11-12.L.3',domain:'vocabulary',diff:'hard',text:'What does “ostensible” mean?',choices:['deeply and genuinely sincere','deliberately hidden from view','entirely false and fabricated','apparently true but possibly not so'],answer:3},
-    {grade:11,ccss:'11-12.RI.6',domain:'comprehension_nonfiction',diff:'hard',passage:'Arrow’s impossibility theorem proves that no voting system can simultaneously satisfy all of a small set of fairness conditions when there are three or more candidates. The conditions — unanimity, independence of irrelevant alternatives, and non-dictatorship — seem individually reasonable, yet Arrow proved they are collectively impossible to satisfy. The theorem implies that every democratic voting procedure must sacrifice at least one intuitive notion of fairness.',text:'Arrow’s impossibility theorem demonstrates that no voting system can simultaneously satisfy all fairness criteria. What is the deepest implication of this result?',choices:['Democracy is always inherently and irreparably corrupt','Majority rule is always the fairest available method','Individual preferences can always be aggregated into a consistent social preference','There is no perfect procedure for translating individual preferences into collective decisions'],answer:3},
+    {grade:11,ccss:'11-12.L.3',domain:'vocabulary',diff:'hard',text:'What does “ostensible” mean?',choices:['deeply and genuinely sincere','deliberately hidden from view','plausible-sounding but internally contradictory','apparently true but possibly not so'],answer:3},
+    {grade:11,ccss:'11-12.RI.6',domain:'comprehension_nonfiction',diff:'hard',passage:'Arrow’s impossibility theorem proves that no voting system can simultaneously satisfy all of a small set of fairness conditions when there are three or more candidates. The conditions — unanimity, independence of irrelevant alternatives, and non-dictatorship — seem individually reasonable, yet Arrow proved they are collectively impossible to satisfy. The theorem implies that every democratic voting procedure must sacrifice at least one intuitive notion of fairness.',text:'Arrow’s impossibility theorem demonstrates that no voting system can simultaneously satisfy all fairness criteria. What is the deepest implication of this result?',choices:['Democratic systems tend to favour the preferences of organised minorities','Majority rule satisfies all the relevant fairness conditions when applied consistently','Individual preferences can typically be aggregated without losing consistency','There is no perfect procedure for translating individual preferences into collective decisions'],answer:3},
     {grade:3,ccss:'3.L.4',domain:'vocabulary',diff:'easy',text:'Which word is a synonym for “brave”?',choices:['cowardly','fearsome','stubborn','courageous'],answer:3},
-    {grade:8,ccss:'8.RI.6',domain:'comprehension_nonfiction',diff:'medium',passage:'Economists distinguish “positive” statements — testable descriptions of reality — from “normative” statements that prescribe how the world ought to be. Positive statements can be evaluated empirically; normative ones rest on value judgements.',text:'The passage says normative disagreements cannot be resolved by evidence alone. What does this imply about the nature of many political arguments?',choices:['They describe clear facts that are directly observable','They are simply too basic to ever test','They merely duplicate what existing positive statements say','They rest on value judgements, not observable evidence'],answer:3},
-    {grade:8,ccss:'8.RI.8',domain:'comprehension_nonfiction',diff:'hard',passage:'In Orwell’s Nineteen Eighty-Four, “doublethink” is the capacity to hold two contradictory beliefs as simultaneously true — not as hypocrisy, but as a psychologically engineered condition. By eliminating the ability to perceive contradiction, the Party makes rebellion cognitively inconceivable.',text:'What distinguishes doublethink from ordinary hypocrisy?',choices:['Hypocrisy is always enforced externally by the governing state','Doublethink requires a very conscious, sustained, and deliberate effort','Doublethink selectively targets only educated intellectuals','Doublethink works below awareness, erasing the ability to detect contradiction'],answer:3},
-    {grade:9,ccss:'9-10.RI.6',domain:'comprehension_nonfiction',diff:'hard',passage:'Isaiah Berlin distinguished negative liberty — freedom from external interference — from positive liberty — the capacity to act according to one’s rational will. Berlin warned positive liberty could be abused: regimes have claimed to liberate citizens by overriding their preferences, calling coercion emancipation.',text:'What rhetorical mechanism does Berlin identify as the core danger of positive liberty?',choices:['Negative liberty is broadly and consistently considered to be philosophically inferior to positive','Citizens who choose to fully embrace positive liberty will ultimately become entirely unable','Positive liberty is a theoretically coherent and internally consistent concept that remains entirely','Coercion can be reframed as liberation by invoking citizens’ supposed “true” rational interests'],answer:3},
+    {grade:8,ccss:'8.RI.6',domain:'comprehension_nonfiction',diff:'medium',passage:'Economists distinguish “positive” statements — testable descriptions of reality — from “normative” statements that prescribe how the world ought to be. Positive statements can be evaluated empirically; normative ones rest on value judgements.',text:'The passage says normative disagreements cannot be resolved by evidence alone. What does this imply about the nature of many political arguments?',choices:['They describe clear facts that are directly observable','They are simply too basic to ever test','They are derived from positive statements and inherit their empirical status','They rest on value judgements, not observable evidence'],answer:3},
+    {grade:8,ccss:'8.RI.8',domain:'comprehension_nonfiction',diff:'hard',passage:'In Orwell’s Nineteen Eighty-Four, “doublethink” is the capacity to hold two contradictory beliefs as simultaneously true — not as hypocrisy, but as a psychologically engineered condition. By eliminating the ability to perceive contradiction, the Party makes rebellion cognitively inconceivable.',text:'What distinguishes doublethink from ordinary hypocrisy?',choices:['Hypocrisy involves holding contradictory beliefs that are actively suppressed by the state','Doublethink requires a very conscious, sustained, and deliberate effort','Doublethink selectively targets only educated intellectuals','Doublethink works below awareness, erasing the ability to detect contradiction'],answer:3},
+    {grade:9,ccss:'9-10.RI.6',domain:'comprehension_nonfiction',diff:'hard',passage:'Isaiah Berlin distinguished negative liberty — freedom from external interference — from positive liberty — the capacity to act according to one’s rational will. Berlin warned positive liberty could be abused: regimes have claimed to liberate citizens by overriding their preferences, calling coercion emancipation.',text:'What rhetorical mechanism does Berlin identify as the core danger of positive liberty?',choices:['Negative liberty is a weaker foundation for political freedom than positive liberty','Citizens who embrace positive liberty often find their autonomy gradually eroded','Positive liberty is a theoretically coherent and internally consistent concept that remains entirely','Coercion can be reframed as liberation by invoking citizens’ supposed “true” rational interests'],answer:3},
     {grade:10,ccss:'9-10.L.6',domain:'vocabulary',diff:'easy',text:'Choose the BEST word: “The scholar’s work was praised for its _____ approach, drawing on linguistics, anthropology, and cognitive science.”',choices:['parochial','reductive','solipsistic','interdisciplinary'],answer:3},
     {grade:10,ccss:'11-12.RI.8',domain:'comprehension_nonfiction',diff:'hard',passage:'Postmodern literary theory challenges objective meaning, arguing texts are shaped by historical context and the reader’s position. Roland Barthes called this “the death of the author” — the author’s intent has no more authority than any other reading.',text:'What does “the death of the author” challenge?',choices:['The broad historical and contextual study of all literature','The purely physical and technical means of producing all texts','The general validity and usefulness of all possible interpretation','The assumption that the author’s intended meaning is the authoritative reading'],answer:3},
-    {grade:11,ccss:'11-12.RL.6',domain:'comprehension_nonfiction',diff:'easy',passage:'Orwell’s doublethink is not hypocrisy but a psychologically engineered state — the capacity to hold two contradictory beliefs as simultaneously true. By eliminating the perception of contradiction, the Party renders the conceptualisation of dissent impossible.',text:'What makes doublethink a more effective instrument of control than simple coercion?',choices:['It relies entirely on applying external punishment and force','Citizens openly and willingly adopt it to avoid punishment','It is a precisely targeted psychological condition that only affects elites','It makes rebellion unthinkable by erasing the ability to recognise contradiction'],answer:3},
-    {grade:12,ccss:'11-12.RI.6',domain:'comprehension_nonfiction',diff:'easy',passage:'Berlin’s negative liberty — freedom from external interference — is contrasted with positive liberty: the capacity to act according to one’s rational will. If the state decides what citizens “truly” want, it can override their expressed preferences while claiming to liberate them.',text:'What rhetorical mechanism makes positive liberty dangerous, according to Berlin?',choices:['Negative liberty is in every way philosophically inferior to positive liberty','Citizens who fully embrace positive liberty will ultimately lose their ability to act freely','Positive liberty is a philosophically coherent ideal but remains completely unworkable in practice','Coercion can be re-described as liberation by claiming to fulfil citizens’ “true” rational interests'],answer:3},
+    {grade:11,ccss:'11-12.RL.6',domain:'comprehension_nonfiction',diff:'easy',passage:'Orwell’s doublethink is not hypocrisy but a psychologically engineered state — the capacity to hold two contradictory beliefs as simultaneously true. By eliminating the perception of contradiction, the Party renders the conceptualisation of dissent impossible.',text:'What makes doublethink a more effective instrument of control than simple coercion?',choices:['It operates through conscious propaganda that citizens are aware of and can resist','Citizens openly and willingly adopt it to avoid punishment','It affects only citizens who have been exposed to state education systems','It makes rebellion unthinkable by erasing the ability to recognise contradiction'],answer:3},
+    {grade:12,ccss:'11-12.RI.6',domain:'comprehension_nonfiction',diff:'easy',passage:'Berlin’s negative liberty — freedom from external interference — is contrasted with positive liberty: the capacity to act according to one’s rational will. If the state decides what citizens “truly” want, it can override their expressed preferences while claiming to liberate them.',text:'What rhetorical mechanism makes positive liberty dangerous, according to Berlin?',choices:['Negative liberty is less compatible with self-realisation than positive liberty','Citizens who pursue positive liberty tend to over-rely on state support for their goals','Positive liberty is more philosophically robust than negative liberty but harder to implement','Coercion can be re-described as liberation by claiming to fulfil citizens’ “true” rational interests'],answer:3},
     {grade:12,ccss:'11-12.RL.6',domain:'comprehension_nonfiction',diff:'medium',passage:'In Nineteen Eighty-Four, doublethink is not hypocrisy but a psychologically engineered condition. Its most insidious feature: practitioners are entirely unaware they are doing it — making the condition self-perpetuating.',text:'Why is the practitioners’ unawareness the most insidious feature of doublethink?',choices:['It paradoxically makes the entire process less insidious','It effectively limits doublethink to a small educated minority','It requires absolutely no ongoing or active maintenance','Without awareness, resistance is impossible — the condition self-perpetuates'],answer:3},
-    {grade:10,ccss:'10.RI.6',domain:'comprehension_nonfiction',diff:'easy',passage:'The Sapir-Whorf hypothesis proposes that the language you speak shapes the categories you use to perceive the world. In its strong form, language determines thought; in its weak form, it influences it. Studies of colour perception and spatial reasoning suggest language does affect cognition in measurable ways.',text:'What is the most significant implication of the Sapir-Whorf hypothesis?',choices:['All languages express exactly the same set of concepts','Grammar has no influence on how speakers perceive the world','Translation between languages is completely impossible','The categories available in a language can shape how its speakers perceive reality'],answer:3},
+    {grade:10,ccss:'10.RI.6',domain:'comprehension_nonfiction',diff:'easy',passage:'The Sapir-Whorf hypothesis proposes that the language you speak shapes the categories you use to perceive the world. In its strong form, language determines thought; in its weak form, it influences it. Studies of colour perception and spatial reasoning suggest language does affect cognition in measurable ways.',text:'What is the most significant implication of the Sapir-Whorf hypothesis?',choices:['All languages express exactly the same set of concepts','Grammar has no influence on how speakers perceive the world','The differences between languages make reliable translation deeply unreliable','The categories available in a language can shape how its speakers perceive reality'],answer:3},
     {grade:10,ccss:'10.RI.6',domain:'comprehension_nonfiction',diff:'medium',passage:'John Rawls proposed that principles of justice should be chosen behind a “veil of ignorance” — a hypothetical position in which individuals do not know their place in society, their class, or their fortune. Rawls argued that rational agents in this position would choose fair principles because they could not afford to privilege any particular social position.',text:'What does Rawls’ veil of ignorance achieve?',choices:['It ensures that only trained philosophers design political systems','It guarantees the most economically productive outcome for society','It removes personal self-interest from the design of political principles','It ensures principles are chosen without knowledge of one’s own social position'],answer:3},
-    {grade:12,ccss:'11-12.RI.8',domain:'comprehension_fiction',diff:'medium',passage:'Derrida introduced the concept of “différance” — the idea that meaning in language is never fully present but is always produced through the difference between signs and the endless deferral of a final, fixed signification. No word carries its meaning within itself; meaning is always relational and postponed.',text:'What does Derrida’s concept of différance imply about textual meaning?',choices:['Every text has exactly one correct reading that careful study will uncover','Authors retain complete authority over what their texts mean','Language is so unstable that it cannot communicate anything at all','No reading is ever final; meaning is always relational and deferred'],answer:3},
-    {grade:11,ccss:'11-12.RI.6',domain:'comprehension_nonfiction',diff:'medium',passage:'Arrow’s impossibility theorem proves that no voting system can simultaneously satisfy all of a small set of fairness conditions: if there are three or more candidates, there is no procedure for combining individual preference rankings into a consistent social ordering that meets all the criteria.',text:'What is the deepest implication of Arrow’s impossibility theorem?',choices:['Democracy is always inherently and irreparably corrupt','Majority rule is always the fairest available method','Individual preferences can always be aggregated into a consistent social preference','There is no perfect procedure for translating individual preferences into a consistent collective decision'],answer:3},
+    {grade:12,ccss:'11-12.RI.8',domain:'comprehension_fiction',diff:'medium',passage:'Derrida introduced the concept of “différance” — the idea that meaning in language is never fully present but is always produced through the difference between signs and the endless deferral of a final, fixed signification. No word carries its meaning within itself; meaning is always relational and postponed.',text:'What does Derrida’s concept of différance imply about textual meaning?',choices:['Every text has exactly one correct reading that careful study will uncover','Authors retain complete authority over what their texts mean','The instability of language means that any given text is open to exactly two interpretations','No reading is ever final; meaning is always relational and deferred'],answer:3},
+    {grade:11,ccss:'11-12.RI.6',domain:'comprehension_nonfiction',diff:'medium',passage:'Arrow’s impossibility theorem proves that no voting system can simultaneously satisfy all of a small set of fairness conditions: if there are three or more candidates, there is no procedure for combining individual preference rankings into a consistent social ordering that meets all the criteria.',text:'What is the deepest implication of Arrow’s impossibility theorem?',choices:['Democratic systems tend to favour the preferences of organised minorities','Majority rule satisfies all the relevant fairness conditions when applied consistently','Individual preferences can typically be aggregated without losing consistency','There is no perfect procedure for translating individual preferences into a consistent collective decision'],answer:3},
     {grade:10,ccss:'10.RI.6',domain:'comprehension_nonfiction',diff:'medium',passage:'John Rawls proposed that principles of justice should be chosen behind a “veil of ignorance” — a hypothetical position in which individuals do not know their place in society, their class, or their fortune. Rawls argued that rational agents in this position would choose fair principles because they could not afford to privilege any particular social position.',text:'What does Rawls’ veil of ignorance achieve?',choices:['It ensures that only trained philosophers design political systems','It guarantees the most economically productive outcome for society','It removes personal self-interest from the design of political principles','It ensures principles are chosen without knowledge of one’s own social position'],answer:3},
-    {grade:12,ccss:'11-12.RI.8',domain:'comprehension_fiction',diff:'medium',passage:'Derrida introduced the concept of “différance” — the idea that meaning in language is never fully present but is always produced through the difference between signs and the endless deferral of a final, fixed signification. No word carries its meaning within itself; meaning is always relational and postponed.',text:'What does Derrida’s concept of différance imply about textual meaning?',choices:['Every text has exactly one correct reading that careful study will uncover','Authors retain complete authority over what their texts mean','Language is so unstable that it cannot communicate anything at all','No reading is ever final; meaning is always relational and deferred'],answer:3},
+    {grade:12,ccss:'11-12.RI.8',domain:'comprehension_fiction',diff:'medium',passage:'Derrida introduced the concept of “différance” — the idea that meaning in language is never fully present but is always produced through the difference between signs and the endless deferral of a final, fixed signification. No word carries its meaning within itself; meaning is always relational and postponed.',text:'What does Derrida’s concept of différance imply about textual meaning?',choices:['Every text has exactly one correct reading that careful study will uncover','Authors retain complete authority over what their texts mean','The instability of language means that any given text is open to exactly two interpretations','No reading is ever final; meaning is always relational and deferred'],answer:3},
     {grade:3,ccss:'3.L.6',domain:'vocabulary',diff:'hard',text:'The report says the volcano “erupted violently.” What does “violently” mean?',choices:['in a very slow way','in a very colourful way','in a quiet, gentle way','with great force and energy'],answer:3},
     {grade:6,ccss:'6.L.4',domain:'vocabulary',diff:'easy',text:'What does the root “rupt” mean in “interrupt” and “erupt”?',choices:['flow','build','write','break'],answer:3},
     {grade:6,ccss:'6.L.4',domain:'vocabulary',diff:'easy',text:'What does the root “scrib” mean in “describe” and “inscription”?',choices:['carry','say','build','write'],answer:3},
@@ -1023,30 +1077,30 @@ const QBANK = {
     {grade:1,ccss:'RI.1.2',domain:'comprehension_nonfiction',diff:'easy',passage:'Bees visit flowers to collect pollen and nectar. As they move from flower to flower, they carry pollen with them. This helps plants grow seeds and fruit.',text:'Why does it matter that bees travel from flower to flower?',choices:['It keeps bees from getting bored','It helps flowers smell sweeter','It makes honey taste better','Carrying pollen between flowers allows plants to make seeds and reproduce'],answer:3},
     {grade:5,ccss:'5.RI.3',domain:'comprehension_nonfiction',diff:'easy',passage:'The printing press, invented around 1440, made books affordable and literacy widespread. The spread of the Reformation was greatly accelerated.',text:'The passage says the printing press “accelerated” the Renaissance and Reformation. What does this word choice imply about the technology’s role?',choices:['It only benefited the wealthiest and most privileged scholarly class','It actively worked to prevent all religious ideas from spreading','It primarily served to make the inventor Gutenberg very wealthy','It enabled the rapid spread of ideas and increased literacy'],answer:3},
     {grade:6,ccss:'RI.6.6',domain:'comprehension_nonfiction',diff:'medium',passage:'Before Gutenberg’s printing press, books were copied by hand and owned only by the wealthy and clergy. After 1450, books became affordable to ordinary people, literacy spread rapidly, and ideas that had been confined to monasteries circulated across Europe.',text:'What assumption about pre-printing-press society does the passage challenge?',choices:['That books were considered sacred objects','That only monks and clergy could read','That trade was limited to Europe','That access to knowledge had been restricted to the wealthy and powerful'],answer:3},
-    {grade:4,ccss:'4.RI.3',domain:'comprehension_nonfiction',diff:'easy',passage:'Photosynthesis allows plants to convert sunlight, water, and carbon dioxide into glucose and oxygen. This process is the foundation of most food chains on Earth.',text:'The passage states that energy in every food chain traces back to a leaf. What does this imply about what would happen to a meat-eating animal if all plant life disappeared?',choices:['It releases CO₂ that every single animal needs','It converts all stored glucose directly back to light','It means all plants never actually need any water','It forms the foundation of most food chains'],answer:3},
-    {grade:8,ccss:'8.RI.3',domain:'comprehension_nonfiction',diff:'easy',passage:'Photosynthesis converts light into glucose, releasing oxygen. Cellular respiration breaks down glucose to release energy, producing CO₂ and water. Together they sustain most life on Earth.',text:'What is the relationship between photosynthesis and cellular respiration?',choices:['They are two entirely separate, distinct, and unrelated processes','They always produce exactly the same two identical chemical substances','Photosynthesis is a process occurring mainly in animals and not plants','They form a complementary cycle, each using the other’s by-products'],answer:3},
+    {grade:4,ccss:'4.RI.3',domain:'comprehension_nonfiction',diff:'easy',passage:'Photosynthesis allows plants to convert sunlight, water, and carbon dioxide into glucose and oxygen. This process is the foundation of most food chains on Earth.',text:'The passage states that energy in every food chain traces back to a leaf. What does this imply about what would happen to a meat-eating animal if all plant life disappeared?',choices:['It releases CO₂ that every single animal needs','It converts all stored glucose directly back to light','It means plants can produce energy without any input from the environment','It forms the foundation of most food chains'],answer:3},
+    {grade:8,ccss:'8.RI.3',domain:'comprehension_nonfiction',diff:'easy',passage:'Photosynthesis converts light into glucose, releasing oxygen. Cellular respiration breaks down glucose to release energy, producing CO₂ and water. Together they sustain most life on Earth.',text:'What is the relationship between photosynthesis and cellular respiration?',choices:['They share the same chemical inputs but produce different outputs','They are mirror images of each other, converting identical molecules','Photosynthesis is a process occurring mainly in animals and not plants','They form a complementary cycle, each using the other’s by-products'],answer:3},
     {grade:0,ccss:'K.RL.2',domain:'comprehension_fiction',diff:'medium',passage:'Sam had three crayons: red, blue, and yellow. He drew a sun with the yellow crayon. He drew the sky with the blue crayon.',text:'Why does Sam use the blue crayon after the yellow one?',choices:['Blue is his favourite colour','He ran out of yellow','He is following a rule','He needs it to colour the sky around the sun'],answer:3},
     {grade:7,ccss:'7.RL.1',domain:'comprehension_fiction',diff:'easy',passage:'The letter arrived on a Tuesday. Priya read it twice, then placed it face-down on the table. Her mother asked who it was from. “No one important,” Priya said, her voice steady. But her hands were shaking.',text:'Why does the author describe Priya going through ordinary routines — cooking, washing up — rather than showing her reacting directly to the letter?',choices:['She is bored by the letter’s contents','She did not understand what the letter said','She wants to share the news immediately','She is concealing how much the letter affects her'],answer:3},
     {grade:9,ccss:'9-10.RL.6',domain:'comprehension_fiction',diff:'medium',passage:'Zora Neale Hurston’s narrators often inhabit two registers simultaneously — the vernacular of their community and the formal voice demanded by the world beyond it. This tension is not resolved; it is inhabited. The character speaks from both places at once, and the reader must learn to hear both.',text:'What does the critic suggest about Hurston’s narrative technique?',choices:['Hurston’s narrators are confused and linguistically inconsistent','The formal voice overpowers the vernacular throughout her work','Hurston fails to achieve a consistent narrative voice','The dual register enacts a tension that is central to the work’s meaning'],answer:3},
-    {grade:6,ccss:'6.RI.6',domain:'comprehension_nonfiction',diff:'medium',passage:'In many democratic countries, voters choose their leaders through elections. However, simply holding an election does not guarantee democracy. Countries where the media is controlled, opposition is suppressed, or votes are manipulated may hold elections while remaining authoritarian.',text:'The passage argues elections are “necessary but not sufficient” for democracy. What type of logical claim is this, and what does it demand of the reader?',choices:['Elections always produce democratic outcomes','Authoritarian governments never hold elections','Media control is the only threat to democracy','Elections are necessary but not sufficient for democracy'],answer:3},
+    {grade:6,ccss:'6.RI.6',domain:'comprehension_nonfiction',diff:'medium',passage:'In many democratic countries, voters choose their leaders through elections. However, simply holding an election does not guarantee democracy. Countries where the media is controlled, opposition is suppressed, or votes are manipulated may hold elections while remaining authoritarian.',text:'The passage argues elections are “necessary but not sufficient” for democracy. What type of logical claim is this, and what does it demand of the reader?',choices:['Elections are both necessary and sufficient to establish democratic governance','Authoritarian governments hold elections that are largely free and fair','Media control is the only threat to democracy','Elections are necessary but not sufficient for democracy'],answer:3},
     {grade:12,ccss:'11-12.RI.6',domain:'comprehension_nonfiction',diff:'medium',passage:'Wittgenstein’s early work held that language pictures reality: meaningful sentences map onto possible states of the world. His later work reversed this. Language, he argued, does not picture the world — it is embedded in forms of life, and meaning is constituted by use.',text:'What is the central contrast between Wittgenstein’s early and later philosophy?',choices:['Early Wittgenstein rejected the idea that language has any meaning','Later Wittgenstein believed language perfectly mirrors reality','Both phases agree that meaning is determined by logical structure','Early Wittgenstein saw language as picturing reality; later he saw meaning as use'],answer:3},
-    {grade:12,ccss:'11-12.RI.6',domain:'comprehension_nonfiction',diff:'easy',passage:'Michel Foucault argued that power does not simply repress — it produces. Institutions, disciplines, and discourses generate the very categories through which individuals understand themselves. The subject is not prior to power; it is constituted by it.',text:'What does Foucault’s argument imply about the relationship between power and the self?',choices:['Power is purely external and has no effect on individual identity','Individuals are formed independently of the institutions they inhabit','Resistance to power is always impossible under this framework','The self is not pre-given but is shaped by the power structures that surround it'],answer:3},
+    {grade:12,ccss:'11-12.RI.6',domain:'comprehension_nonfiction',diff:'easy',passage:'Michel Foucault argued that power does not simply repress — it produces. Institutions, disciplines, and discourses generate the very categories through which individuals understand themselves. The subject is not prior to power; it is constituted by it.',text:'What does Foucault’s argument imply about the relationship between power and the self?',choices:['Power is purely external and has no effect on individual identity','Individuals are formed independently of the institutions they inhabit','Resistance to power is possible only outside the institutions that shape identity','The self is not pre-given but is shaped by the power structures that surround it'],answer:3},
     {grade:8,ccss:'8.RI.3',domain:'comprehension_nonfiction',diff:'easy',passage:'Natural selection acts on variation. Individuals with traits better suited to their environment survive longer and reproduce more. Over many generations, these traits become more common in the population. This process does not have a goal — it simply reflects which traits are reproduced.',text:'What does the passage emphasise about natural selection?',choices:['It works toward a predetermined goal of improvement','Traits are selected because they are objectively superior','It is a random process with no consistent direction','It is an undirected process acting on heritable variation'],answer:3},
     {grade:7,ccss:'7.RL.1',domain:'comprehension_fiction',diff:'easy',passage:'The letter arrived on a Tuesday. Priya read it twice, then placed it face-down on the table. Her mother asked who it was from. “No one important,” Priya said, her voice steady. But her hands were shaking.',text:'Why does the author describe Priya going through ordinary routines — cooking, washing up — rather than showing her reacting directly to the letter?',choices:['She is bored by the letter’s contents','She did not understand what the letter said','She wants to share the news immediately','She is concealing how much the letter affects her'],answer:3},
     {grade:9,ccss:'9-10.RL.6',domain:'comprehension_fiction',diff:'medium',passage:'Zora Neale Hurston’s narrators often inhabit two registers simultaneously — the vernacular of their community and the formal voice demanded by the world beyond it. This tension is not resolved; it is inhabited. The character speaks from both places at once, and the reader must learn to hear both.',text:'What does the critic suggest about Hurston’s narrative technique?',choices:['Hurston’s narrators are confused and linguistically inconsistent','The formal voice overpowers the vernacular throughout her work','Hurston fails to achieve a consistent narrative voice','The dual register enacts a tension that is central to the work’s meaning'],answer:3},
     {grade:12,ccss:'11-12.RL.6',domain:'comprehension_nonfiction',diff:'medium',passage:'In Nineteen Eighty-Four, doublethink is not hypocrisy but a psychologically engineered condition. Its most insidious feature: practitioners are entirely unaware they are doing it — making the condition self-perpetuating.',text:'Why is the practitioners’ unawareness the most insidious feature of doublethink?',choices:['It paradoxically makes the entire process less insidious','It effectively limits doublethink to a small educated minority','It requires absolutely no ongoing or active maintenance','Without awareness, resistance is impossible — the condition self-perpetuates'],answer:3},
     {grade:12,ccss:'11-12.RI.6',domain:'comprehension_nonfiction',diff:'medium',passage:'Wittgenstein’s early work held that language pictures reality: meaningful sentences map onto possible states of the world. His later work reversed this. Language, he argued, does not picture the world — it is embedded in forms of life, and meaning is constituted by use.',text:'What is the central contrast between Wittgenstein’s early and later philosophy?',choices:['Early Wittgenstein rejected the idea that language has any meaning','Later Wittgenstein believed language perfectly mirrors reality','Both phases agree that meaning is determined by logical structure','Early Wittgenstein saw language as picturing reality; later he saw meaning as use'],answer:3},
-    {grade:12,ccss:'11-12.RI.6',domain:'comprehension_nonfiction',diff:'easy',passage:'Michel Foucault argued that power does not simply repress — it produces. Institutions, disciplines, and discourses generate the very categories through which individuals understand themselves. The subject is not prior to power; it is constituted by it.',text:'What does Foucault’s argument imply about the relationship between power and the self?',choices:['Power is purely external and has no effect on individual identity','Individuals are formed independently of the institutions they inhabit','Resistance to power is always impossible under this framework','The self is not pre-given but is shaped by the power structures that surround it'],answer:3},
+    {grade:12,ccss:'11-12.RI.6',domain:'comprehension_nonfiction',diff:'easy',passage:'Michel Foucault argued that power does not simply repress — it produces. Institutions, disciplines, and discourses generate the very categories through which individuals understand themselves. The subject is not prior to power; it is constituted by it.',text:'What does Foucault’s argument imply about the relationship between power and the self?',choices:['Power is purely external and has no effect on individual identity','Individuals are formed independently of the institutions they inhabit','Resistance to power is possible only outside the institutions that shape identity','The self is not pre-given but is shaped by the power structures that surround it'],answer:3},
     {grade:3,ccss:'3.RI.2',domain:'comprehension_nonfiction',diff:'easy',passage:'The water cycle describes how water moves between Earth’s surface and the atmosphere through evaporation, condensation, and precipitation.',text:'Why does the author describe both evaporation and rain in the same passage?',choices:['To show that rain and clouds are different','To explain why the ocean is salty','To argue that gravity is more powerful than the sun','To show that water moves in a continuous loop rather than disappearing'],answer:3},
     {grade:3,ccss:'3.RI.2',domain:'comprehension_nonfiction',diff:'easy',passage:'The water cycle describes how water moves between Earth’s surface and the atmosphere through evaporation, condensation, and precipitation.',text:'Why does the author describe both evaporation and precipitation in the same passage?',choices:['To show that rain and clouds are different','To explain why the ocean is salty','To argue that gravity is more powerful than the sun','To show that water moves in a continuous loop rather than disappearing'],answer:3},
     {grade:0,ccss:'RI.K.1',domain:'comprehension_nonfiction',diff:'easy',passage:'Water from puddles and rivers goes up into the sky as steam. The steam cools and makes clouds. When clouds get heavy, the water falls as rain.',text:'What causes water to rise into the sky and become clouds?',choices:['The wind blows it upward','Cold temperatures freeze it','Rain pulls it upward','The sun heats it and turns it to steam'],answer:3},
     {grade:3,ccss:'RI.3.3',domain:'comprehension_nonfiction',diff:'medium',passage:'Water on Earth moves in a continuous cycle. It evaporates from oceans, rises as vapour, forms clouds, and falls as rain or snow. This water flows into rivers, which carry it back to the sea.',text:'What would happen to the water cycle if the sun stopped providing heat?',choices:['Rain would fall more often','Water would evaporate faster','Clouds would form higher up','Evaporation would stop, breaking the cycle entirely'],answer:3},
-    {grade:2,ccss:'2.RI.3',domain:'comprehension_nonfiction',diff:'easy',passage:'Rain falls from clouds. It soaks into the ground or flows into rivers. The sun heats water, turning it to vapour that rises and forms new clouds.',text:'Why does the author begin the passage with the sun heating water?',choices:['To explain why it rains at night','To show that water is always cold','To argue that oceans are shrinking','To show that the water cycle is powered by an outside energy source'],answer:3},
+    {grade:2,ccss:'2.RI.3',domain:'comprehension_nonfiction',diff:'easy',passage:'Rain falls from clouds. It soaks into the ground or flows into rivers. The sun heats water, turning it to vapour that rises and forms new clouds.',text:'Why does the author begin the passage with the sun heating water?',choices:['To explain why it rains at night','To argue that the sun is the primary cause of ocean evaporation only near the equator','To argue that oceans are shrinking','To show that the water cycle is powered by an outside energy source'],answer:3},
     {grade:2,ccss:'2.RI.3',domain:'comprehension_nonfiction',diff:'easy',passage:'Plants make their own food using sunlight. Caterpillars eat plants. Birds eat caterpillars. When the bird dies, it breaks down into the soil, helping plants grow again.',text:'Why does the author include what happens when a bird dies?',choices:['To show birds are less important than plants','To explain what birds eat','To suggest the cycle has no end or beginning','To show that even death contributes to sustaining life'],answer:3},
-    {grade:11,ccss:'11-12.RI.6',domain:'comprehension_nonfiction',diff:'easy',passage:'Noam Chomsky and Edward Herman argued that mass media in democratic societies does not require censorship to serve power. Instead, market forces, advertiser influence, and the reliance on official sources create a systematic bias that filters out dissent while appearing objective.',text:'What is the central claim of Chomsky and Herman’s argument?',choices:['Democratic governments openly censor the press to control opinion','All journalists are deliberately dishonest in their reporting','Market and structural pressures produce media bias without explicit censorship','A free press is impossible in any society with powerful corporations'],answer:2},
+    {grade:11,ccss:'11-12.RI.6',domain:'comprehension_nonfiction',diff:'easy',passage:'Noam Chomsky and Edward Herman argued that mass media in democratic societies does not require censorship to serve power. Instead, market forces, advertiser influence, and the reliance on official sources create a systematic bias that filters out dissent while appearing objective.',text:'What is the central claim of Chomsky and Herman’s argument?',choices:['Democratic governments openly censor the press to control opinion','Journalists consciously align their reporting with the interests of media owners','Market and structural pressures produce media bias without explicit censorship','Structural bias in media can only be corrected through direct government regulation'],answer:2},
     {grade:6,ccss:'6.RL.1',domain:'comprehension_fiction',diff:'easy',passage:'The general surveyed the ruined battlefield. He knew the plan had failed, but his face showed nothing. His expression was carved from stone.',text:'What does the author achieve by describing the general’s expression as “carved from stone” rather than simply saying he looked impassive?',choices:['He appeared openly afraid','He looked visibly angry','He stood rigid and frozen','He kept his face controlled and unreadable'],answer:3},
     {grade:6,ccss:'6.RL.1',domain:'comprehension_fiction',diff:'easy',passage:'At the edge of the market, an old woman sold stories. Not books — stories. You paid a coin, sat down, and she spoke. Nobody ever wrote her stories down. When she died, every story she had not yet told died with her.',text:'Why does the author end the passage with the granddaughter’s failed search rather than describing the stories themselves?',choices:['It is inferior to written literature','It is a profitable business if done correctly','It is only valuable when eventually written down','It is fragile and irreplaceable once its keeper is gone'],answer:3},
-    {grade:11,ccss:'11-12.RI.6',domain:'comprehension_nonfiction',diff:'easy',passage:'Noam Chomsky and Edward Herman argued that mass media in democratic societies does not require censorship to serve power. Instead, market forces, advertiser influence, and the reliance on official sources create a systematic bias that filters out dissent while appearing objective.',text:'What is the central claim of Chomsky and Herman’s argument?',choices:['Democratic governments openly censor the press to control opinion','All journalists are deliberately dishonest in their reporting','Market and structural pressures produce media bias without explicit censorship','A free press is impossible in any society with powerful corporations'],answer:2},
+    {grade:11,ccss:'11-12.RI.6',domain:'comprehension_nonfiction',diff:'easy',passage:'Noam Chomsky and Edward Herman argued that mass media in democratic societies does not require censorship to serve power. Instead, market forces, advertiser influence, and the reliance on official sources create a systematic bias that filters out dissent while appearing objective.',text:'What is the central claim of Chomsky and Herman’s argument?',choices:['Democratic governments openly censor the press to control opinion','Journalists consciously align their reporting with the interests of media owners','Market and structural pressures produce media bias without explicit censorship','Structural bias in media can only be corrected through direct government regulation'],answer:2},
     {grade:6,ccss:'6.RL.1',domain:'comprehension_fiction',diff:'easy',passage:'The general surveyed the ruined battlefield. He knew the plan had failed, but his face showed nothing. His expression was carved from stone.',text:'What does the author achieve by describing the general’s expression as “carved from stone” rather than simply saying he looked impassive?',choices:['He appeared openly afraid','He looked visibly angry','He stood rigid and frozen','He kept his face controlled and unreadable'],answer:3},
     {grade:0,ccss:'RL.K.1',domain:'comprehension_fiction',diff:'easy',passage:'Tom had a red toy car. One day he could not find it. He looked under his bed and in his bag. His dog had it!',text:'What does the ending of the story tell us about the dog?',choices:['The dog is lost','The dog is hungry','The dog is scared','The dog had taken the toy car'],answer:3},
     {grade:0,ccss:'RL.K.3',domain:'comprehension_fiction',diff:'medium',passage:'Lily saw a bird with a hurt wing. She picked it up gently and put it in a box. She gave it water every day until it could fly again.',text:'What does Lily’s action tell us about her?',choices:['She is afraid of birds','She is very busy','She is kind and caring','She likes boxes'],answer:2},
@@ -1062,18 +1116,18 @@ const QBANK = {
     {grade:10,ccss:'RL.9-10.5',domain:'comprehension_fiction',diff:'hard',passage:'She walked and the city folded around her — adverts, faces, traffic all pressing in with equal urgency, each thing demanding to be the last thing. She stopped at a postbox and forgot what she had meant to send.',text:'What does the prose style enact about modern urban experience?',choices:['That cities are dangerous places','That the character is forgetful','That modern life fragments attention and erodes intention','That posting letters is old-fashioned'],answer:2},
     {grade:12,ccss:'RL.11-12.5',domain:'comprehension_fiction',diff:'hard',passage:'On page forty the narrator announced that he was aware of being fictional, that the author’s hand moved above him at this very moment, and that he found this neither comforting nor distressing — merely structural.',text:'What is the effect of this metafictional moment?',choices:['It is an authorial mistake','It breaks the fourth wall to foreground the constructed nature of narrative itself','It makes the narrator more sympathetic','It signals the end of the novel'],answer:1},
     {grade:2,ccss:'RI.2.3',domain:'comprehension_nonfiction',diff:'medium',passage:'Ancient Egyptians built pyramids as tombs for their pharaohs. Workers cut enormous stone blocks and hauled them across the desert. The pyramids took decades to complete.',text:'What does the detail about the size of the pyramid suggest about ancient Egyptian society?',choices:['They had very few workers','They built very quickly','They used modern machinery','It required extraordinary organisation and enormous resources'],answer:3},
-    {grade:5,ccss:'RI.5.3',domain:'comprehension_nonfiction',diff:'medium',passage:'Earth has five main climate zones: tropical, dry, temperate, continental, and polar. Each zone has distinct patterns of temperature and rainfall that shape the plants, animals, and human cultures found there.',text:'Why does the author describe all five climate zones rather than just one?',choices:['To show all zones have the same temperature','To argue that polar zones are most important','To suggest climate zones never change','To show how different combinations of temperature and rainfall produce distinct environments'],answer:3},
-    {grade:7,ccss:'RI.7.8',domain:'comprehension_nonfiction',diff:'medium',passage:'In clinical trials, patients who receive a placebo — a treatment with no active ingredient — often report genuine improvements. This placebo effect reveals that the brain’s expectation of healing can trigger real physiological responses.',text:'The passage says all drug trials must include a placebo control group. What does this methodological requirement reveal about the placebo effect?',choices:['That medicine is unnecessary','That the brain can influence physical health outcomes','That trials are always unreliable','That patients should not be told about their treatment'],answer:1},
-    {grade:8,ccss:'RI.8.6',domain:'comprehension_nonfiction',diff:'hard',passage:'In the Prisoner’s Dilemma, two suspects are questioned separately. If both stay silent, both receive light sentences. If one betrays the other, the betrayer goes free while the silent one gets the maximum sentence. If both betray, both get moderate sentences. Rational self-interest leads both to betray — even though mutual silence would be better for both.',text:'What does the Prisoner’s Dilemma illustrate?',choices:['That criminals always cooperate','That rational self-interest can lead to worse collective outcomes','That communication solves all conflicts','That courts are unjust'],answer:1},
+    {grade:5,ccss:'RI.5.3',domain:'comprehension_nonfiction',diff:'medium',passage:'Earth has five main climate zones: tropical, dry, temperate, continental, and polar. Each zone has distinct patterns of temperature and rainfall that shape the plants, animals, and human cultures found there.',text:'Why does the author describe all five climate zones rather than just one?',choices:['To show all zones have the same temperature','To argue that polar zones are most important','To demonstrate that temperature alone determines the character of each zone','To show how different combinations of temperature and rainfall produce distinct environments'],answer:3},
+    {grade:7,ccss:'RI.7.8',domain:'comprehension_nonfiction',diff:'medium',passage:'In clinical trials, patients who receive a placebo — a treatment with no active ingredient — often report genuine improvements. This placebo effect reveals that the brain’s expectation of healing can trigger real physiological responses.',text:'The passage says all drug trials must include a placebo control group. What does this methodological requirement reveal about the placebo effect?',choices:['That medicine is unnecessary','That the brain can influence physical health outcomes','That controlled trials consistently overestimate the effectiveness of new drugs','That patients should not be told about their treatment'],answer:1},
+    {grade:8,ccss:'RI.8.6',domain:'comprehension_nonfiction',diff:'hard',passage:'In the Prisoner’s Dilemma, two suspects are questioned separately. If both stay silent, both receive light sentences. If one betrays the other, the betrayer goes free while the silent one gets the maximum sentence. If both betray, both get moderate sentences. Rational self-interest leads both to betray — even though mutual silence would be better for both.',text:'What does the Prisoner’s Dilemma illustrate?',choices:['That communication between parties reliably resolves conflicts of interest','That rational self-interest can lead to worse collective outcomes','That communication solves all conflicts','That courts are unjust'],answer:1},
     {grade:9,ccss:'RI.9-10.6',domain:'comprehension_nonfiction',diff:'hard',passage:'When Copernicus proposed that Earth orbits the Sun, he overturned more than 1,400 years of accepted cosmology. The resistance was not purely religious — scholars had built entire systems of knowledge on the Ptolemaic model, and admitting Copernicus was right meant dismantling that edifice.',text:'Why did scholars resist Copernicus despite the evidence?',choices:['They had not read his work','The evidence was still unclear','Accepting it required dismantling established intellectual frameworks','The Church banned all discussion'],answer:2},
-    {grade:12,ccss:'RI.11-12.6',domain:'comprehension_nonfiction',diff:'hard',passage:'Hume’s problem of induction shows that no number of observed instances logically guarantees a universal law. The sun has risen every day in recorded history, yet this cannot prove it will rise tomorrow — the future is not logically entailed by the past.',text:'What is the broader implication of Hume’s problem of induction?',choices:['Science is meaningless','Historical records are unreliable','All scientific laws rest on an assumption that cannot itself be logically proven','The sun will not rise tomorrow'],answer:2},
+    {grade:12,ccss:'RI.11-12.6',domain:'comprehension_nonfiction',diff:'hard',passage:'Hume’s problem of induction shows that no number of observed instances logically guarantees a universal law. The sun has risen every day in recorded history, yet this cannot prove it will rise tomorrow — the future is not logically entailed by the past.',text:'What is the broader implication of Hume’s problem of induction?',choices:['Scientific knowledge is provisional and should be treated with greater scepticism','Historical records are unreliable','All scientific laws rest on an assumption that cannot itself be logically proven','The sun will not rise tomorrow'],answer:2},
     {grade:0,ccss:'RL.K.3',domain:'comprehension_fiction',diff:'medium',passage:'Lily saw a bird with a hurt wing. She picked it up gently and put it in a box. She gave it water every day until it could fly again.',text:'What does Lily’s action tell us about her?',choices:['She is afraid of birds','She is very busy','She is kind and caring','She likes boxes'],answer:2},
     {grade:2,ccss:'RL.2.6',domain:'comprehension_fiction',diff:'medium',passage:'Sam climbed to the top of the old lighthouse. The view made his breath catch — ships below looked like toys, and the sea stretched to the edge of the world.',text:'What does the description suggest about Sam’s experience?',choices:['He is frightened of heights','He finds the view ordinary','He is struck by awe and wonder','He wants to leave quickly'],answer:2},
     {grade:4,ccss:'RL.4.3',domain:'comprehension_fiction',diff:'medium',passage:'Every night, twelve-year-old Hana pressed her ear against the radio. Through the static came forbidden music — jazz, bright and defiant. For those few minutes, the occupation felt distant.',text:'What does Hana’s secret listening suggest about her?',choices:['She is breaking the law carelessly','She finds small acts of resistance important','She wants to learn music','She is afraid of the occupation'],answer:1},
     {grade:6,ccss:'RL.6.6',domain:'comprehension_fiction',diff:'medium',passage:'That was the summer Marcus finally understood why his grandfather spent every evening staring at the mountains. Not searching for anything, just watching — as if the light itself was enough.',text:'What is the effect of listing specific sensory details — the changing light, the smell of rain, the fragment of a song — rather than stating the shift directly?',choices:['He begins to dislike the countryside','He learns to appreciate stillness and presence','He becomes bored without distractions','He decides to leave home'],answer:1},
-    {grade:8,ccss:'RI.8.6',domain:'comprehension_nonfiction',diff:'hard',passage:'In the Prisoner’s Dilemma, two suspects are questioned separately. If both stay silent, both receive light sentences. If one betrays the other, the betrayer goes free while the silent one gets the maximum sentence. If both betray, both get moderate sentences. Rational self-interest leads both to betray — even though mutual silence would be better for both.',text:'What does the Prisoner’s Dilemma illustrate?',choices:['That criminals always cooperate','That rational self-interest can lead to worse collective outcomes','That communication solves all conflicts','That courts are unjust'],answer:1},
+    {grade:8,ccss:'RI.8.6',domain:'comprehension_nonfiction',diff:'hard',passage:'In the Prisoner’s Dilemma, two suspects are questioned separately. If both stay silent, both receive light sentences. If one betrays the other, the betrayer goes free while the silent one gets the maximum sentence. If both betray, both get moderate sentences. Rational self-interest leads both to betray — even though mutual silence would be better for both.',text:'What does the Prisoner’s Dilemma illustrate?',choices:['That communication between parties reliably resolves conflicts of interest','That rational self-interest can lead to worse collective outcomes','That communication solves all conflicts','That courts are unjust'],answer:1},
     {grade:11,ccss:'RI.11-12.6',domain:'comprehension_nonfiction',diff:'hard',passage:'Wittgenstein argued in his later work that meaning is not a private mental state but a product of public use. A word means what it does because of how a community uses it — outside that social practice, the word is merely noise.',text:'What is the key implication of Wittgenstein’s theory of meaning?',choices:['Language is innate and universal','Meaning is fixed by a dictionary','Meaning is constituted by social practice, not private mental content','Words have no meaning without images'],answer:2},
-    {grade:12,ccss:'RI.11-12.6',domain:'comprehension_nonfiction',diff:'hard',passage:'Hume’s problem of induction shows that no number of observed instances logically guarantees a universal law. The sun has risen every day in recorded history, yet this cannot prove it will rise tomorrow — the future is not logically entailed by the past.',text:'What is the broader implication of Hume’s problem of induction?',choices:['Science is meaningless','Historical records are unreliable','All scientific laws rest on an assumption that cannot itself be logically proven','The sun will not rise tomorrow'],answer:2},
+    {grade:12,ccss:'RI.11-12.6',domain:'comprehension_nonfiction',diff:'hard',passage:'Hume’s problem of induction shows that no number of observed instances logically guarantees a universal law. The sun has risen every day in recorded history, yet this cannot prove it will rise tomorrow — the future is not logically entailed by the past.',text:'What is the broader implication of Hume’s problem of induction?',choices:['Scientific knowledge is provisional and should be treated with greater scepticism','Historical records are unreliable','All scientific laws rest on an assumption that cannot itself be logically proven','The sun will not rise tomorrow'],answer:2},
     {grade:4,ccss:'4.L.5',domain:'vocabulary',diff:'medium',text:'What does the idiom “break the ice” mean?',choices:['To shatter something frozen','To cool something down','To prevent conflict','To start a conversation in an awkward situation'],answer:3},
     {grade:4,ccss:'4.L.6',domain:'vocabulary',diff:'hard',text:'Choose the BEST word: “The scientist’s _____ research took years but changed our understanding of the disease.”',choices:['hasty','incomplete','trivial','groundbreaking'],answer:3},
     {grade:5,ccss:'5.L.4',domain:'vocabulary',diff:'easy',text:'Which word is a synonym for “abundant”?',choices:['distant','scarce','ordinary','plentiful'],answer:3},
@@ -1083,7 +1137,7 @@ const QBANK = {
     {grade:6,ccss:'6.L.5',domain:'vocabulary',diff:'medium',text:'What does “ephemeral” mean?',choices:['very large','deeply serious','lasting forever','short-lived and transient'],answer:3},
     {grade:6,ccss:'6.L.5b',domain:'vocabulary',diff:'hard',text:'What does “sycophant” mean?',choices:['an impartial judge','a principled critic','a philosophical thinker','a person who uses flattery to gain favour from those in power'],answer:3},
     {grade:7,ccss:'7.L.4',domain:'vocabulary',diff:'easy',text:'Which word means “newly emerging or just beginning to develop”?',choices:['ancient','established','declining','nascent'],answer:3},
-    {grade:7,ccss:'7.L.6',domain:'vocabulary',diff:'hard',text:'What does “ambivalent” mean?',choices:['strongly committed to one view','completely indifferent','deeply enthusiastic','having mixed or conflicting feelings about something'],answer:3},
+    {grade:7,ccss:'7.L.6',domain:'vocabulary',diff:'hard',text:'What does “ambivalent” mean?',choices:['strongly committed to one view','uncertain about a decision but leaning toward one side','deeply enthusiastic','having mixed or conflicting feelings about something'],answer:3},
     {grade:11,ccss:'11-12.L.5',domain:'vocabulary',diff:'easy',text:'Which sentence uses “paradox” with the greatest precision?',choices:['She spoke with paradox clarity.','His paradox arrived before him.','She found paradox in finishing early.','It is a paradox that the most connected generation reports the deepest loneliness.'],answer:3},
     {grade:11,ccss:'11-12.L.6',domain:'vocabulary',diff:'hard',text:'Choose the BEST word: “The historian’s thesis was _____, weaving economic data, literary sources, and archaeological evidence into one unified argument.”',choices:['parochial','reductive','redundant','interdisciplinary'],answer:3},
     {grade:12,ccss:'11-12.L.4',domain:'vocabulary',diff:'easy',text:'The word “solipsism” most precisely describes:',choices:['extreme political self-interest','belief that collective knowledge is unreliable','a critical approach centred on authorial intent','the philosophical position that only one’s own mind is verifiably certain to exist'],answer:3},
@@ -1095,7 +1149,7 @@ const QBANK = {
     {grade:3,ccss:'3.L.5',domain:'vocabulary',diff:'easy',text:'What does “curious” mean?',choices:['tired','frightened','bored','eager to know or learn'],answer:3},
     {grade:4,ccss:'4.L.4',domain:'vocabulary',diff:'medium',text:'The prefix “un-” in “unhappy” means:',choices:['very','before','again','not'],answer:3},
     {grade:5,ccss:'5.L.4',domain:'vocabulary',diff:'medium',text:'The root “aud” in “audience” relates to:',choices:['sight','touch','smell','hearing'],answer:3},
-    {grade:6,ccss:'6.L.4',domain:'vocabulary',diff:'easy',text:'What does “transparent” mean?',choices:['very dark','opaque and solid','completely hidden','clear enough to be seen through'],answer:3},
+    {grade:6,ccss:'6.L.4',domain:'vocabulary',diff:'easy',text:'What does “transparent” mean?',choices:['very dark','opaque and solid','visible only under specific lighting conditions','clear enough to be seen through'],answer:3},
     {grade:6,ccss:'6.L.5',domain:'vocabulary',diff:'hard',text:'What does “paradox” mean?',choices:['a simple truth','an obvious fact','a well-known proverb','a statement that seems contradictory but may be true'],answer:3},
     {grade:7,ccss:'7.L.5',domain:'vocabulary',diff:'easy',text:'What does “inevitable” mean?',choices:['unlikely to happen','easily avoided','unpredictable','certain to happen; unavoidable'],answer:3},
     {grade:7,ccss:'7.L.4',domain:'vocabulary',diff:'medium',text:'What does “exacerbate” mean?',choices:['to improve gradually','to describe in detail','to examine carefully','to make a problem worse'],answer:3},
@@ -1108,7 +1162,7 @@ const QBANK = {
     {grade:6,ccss:'6.L.4',domain:'vocabulary',diff:'easy',text:'What does “contradict” mean?',choices:['to agree fully','to change the subject','to refuse to listen','to assert the opposite of what was said'],answer:3},
     {grade:6,ccss:'6.L.5',domain:'vocabulary',diff:'medium',text:'What does “ephemeral” mean?',choices:['very large','deeply serious','lasting forever','short-lived and transient'],answer:3},
     {grade:6,ccss:'6.L.5b',domain:'vocabulary',diff:'hard',text:'What does “sycophant” mean?',choices:['an impartial judge','a principled critic','a philosophical thinker','a person who uses flattery to gain favour from those in power'],answer:3},
-    {grade:7,ccss:'7.L.6',domain:'vocabulary',diff:'hard',text:'What does “ambivalent” mean?',choices:['strongly committed to one view','completely indifferent','deeply enthusiastic','having mixed or conflicting feelings about something'],answer:3},
+    {grade:7,ccss:'7.L.6',domain:'vocabulary',diff:'hard',text:'What does “ambivalent” mean?',choices:['strongly committed to one view','uncertain about a decision but leaning toward one side','deeply enthusiastic','having mixed or conflicting feelings about something'],answer:3},
     {grade:11,ccss:'11-12.L.5',domain:'vocabulary',diff:'easy',text:'Which sentence uses “paradox” with the greatest precision?',choices:['She spoke with paradox clarity.','His paradox arrived before him.','She found paradox in finishing early.','It is a paradox that the most connected generation reports the deepest loneliness.'],answer:3},
     {grade:12,ccss:'11-12.L.4',domain:'vocabulary',diff:'easy',text:'The word “solipsism” most precisely describes:',choices:['extreme political self-interest','belief that collective knowledge is unreliable','a critical approach centred on authorial intent','the philosophical position that only one’s own mind is verifiably certain to exist'],answer:3},
     {grade:12,ccss:'11-12.L.5',domain:'vocabulary',diff:'hard',text:'In rhetorical analysis, “synecdoche” refers to:',choices:['exaggeration for effect','the repetition of initial consonants','an appeal to audience emotions','a figure of speech in which a part represents the whole, or the whole a part'],answer:3},
@@ -1118,7 +1172,7 @@ const QBANK = {
     {grade:3,ccss:'3.L.5',domain:'vocabulary',diff:'easy',text:'What does “curious” mean?',choices:['tired','frightened','bored','eager to know or learn'],answer:3},
     {grade:4,ccss:'4.L.4',domain:'vocabulary',diff:'medium',text:'The prefix “un-” in “unhappy” means:',choices:['very','before','again','not'],answer:3},
     {grade:5,ccss:'5.L.4',domain:'vocabulary',diff:'medium',text:'The root “aud” in “audience” relates to:',choices:['sight','touch','smell','hearing'],answer:3},
-    {grade:6,ccss:'6.L.4',domain:'vocabulary',diff:'easy',text:'What does “transparent” mean?',choices:['very dark','opaque and solid','completely hidden','clear enough to be seen through'],answer:3},
+    {grade:6,ccss:'6.L.4',domain:'vocabulary',diff:'easy',text:'What does “transparent” mean?',choices:['very dark','opaque and solid','visible only under specific lighting conditions','clear enough to be seen through'],answer:3},
     {grade:6,ccss:'6.L.5',domain:'vocabulary',diff:'hard',text:'What does “paradox” mean?',choices:['a simple truth','an obvious fact','a well-known proverb','a statement that seems contradictory but may be true'],answer:3},
     {grade:7,ccss:'7.L.5',domain:'vocabulary',diff:'easy',text:'What does “inevitable” mean?',choices:['unlikely to happen','easily avoided','unpredictable','certain to happen; unavoidable'],answer:3},
     {grade:7,ccss:'7.L.4',domain:'vocabulary',diff:'medium',text:'What does “exacerbate” mean?',choices:['to improve gradually','to describe in detail','to examine carefully','to make a problem worse'],answer:3},
@@ -1178,31 +1232,31 @@ const QBANK = {
     {grade:2,ccss:'2.L.4',domain:'vocabulary',diff:'hard',text:'What does “patient” mean?',choices:['to ask for help','to move very fast','to give up quickly','able to wait calmly without complaining'],answer:3},
     {grade:2,ccss:'2.L.4',domain:'vocabulary',diff:'hard',text:'What does “persevere” mean?',choices:['to ask for help','to move very fast','to give up quickly','to keep going despite difficulty'],answer:3},
     {grade:5,ccss:'5.L.6',domain:'vocabulary',diff:'hard',text:'What does “persevere” mean?',choices:['to quit when things get hard','to ask others for help','to rush through a task','to keep trying despite obstacles or difficulty'],answer:3},
-    {grade:6,ccss:'6.L.5',domain:'vocabulary',diff:'medium',text:'What does “ambiguous” mean?',choices:['perfectly clear','completely false','strongly one-sided','open to more than one interpretation'],answer:3},
-    {grade:6,ccss:'6.L.5',domain:'vocabulary',diff:'hard',text:'What does “cunning” mean?',choices:['very strong and brave','extremely generous','completely honest','clever in a sly or deceitful way'],answer:3},
+    {grade:6,ccss:'6.L.5',domain:'vocabulary',diff:'medium',text:'What does “ambiguous” mean?',choices:['perfectly clear','deliberately misleading or ambiguous in its presentation','strongly one-sided','open to more than one interpretation'],answer:3},
+    {grade:6,ccss:'6.L.5',domain:'vocabulary',diff:'hard',text:'What does “cunning” mean?',choices:['very strong and brave','extremely generous','boldly direct in sharing opinions','clever in a sly or deceitful way'],answer:3},
     {grade:6,ccss:'6.L.6',domain:'vocabulary',diff:'hard',text:'What does “monotonous” mean?',choices:['very exciting','unpredictable','colourful and varied','dull and repetitive; lacking variety'],answer:3},
     {grade:7,ccss:'7.L.6',domain:'vocabulary',diff:'hard',text:'What does “scrutinise” mean?',choices:['to ignore completely','to describe briefly','to accept without question','to examine very carefully and critically'],answer:3},
     {grade:7,ccss:'7.L.6',domain:'vocabulary',diff:'hard',text:'What does “bias” mean?',choices:['a fair judgement','a precise measurement','a correct answer','an unfair preference for or against something'],answer:3},
     {grade:8,ccss:'8.L.4',domain:'vocabulary',diff:'easy',text:'What does “obfuscate” mean?',choices:['to make perfectly clear','to improve step by step','to list in order','to make confusing or unclear deliberately'],answer:3},
     {grade:5,ccss:'5.L.6',domain:'vocabulary',diff:'hard',text:'What does “corroborate” mean?',choices:['to disprove a theory','to misrepresent facts','to express doubt','to confirm or support with additional evidence'],answer:3},
     {grade:6,ccss:'6.L.5',domain:'vocabulary',diff:'medium',text:'What does “ephemeral” mean?',choices:['very large','deeply serious','lasting forever','short-lived and transient'],answer:3},
-    {grade:6,ccss:'6.L.5',domain:'vocabulary',diff:'medium',text:'What does “ambiguous” mean?',choices:['perfectly clear','completely false','strongly one-sided','open to more than one interpretation'],answer:3},
+    {grade:6,ccss:'6.L.5',domain:'vocabulary',diff:'medium',text:'What does “ambiguous” mean?',choices:['perfectly clear','deliberately misleading or ambiguous in its presentation','strongly one-sided','open to more than one interpretation'],answer:3},
     {grade:6,ccss:'6.L.5b',domain:'vocabulary',diff:'hard',text:'What does “sycophant” mean?',choices:['an impartial judge','a principled critic','a philosophical thinker','a person who uses flattery to gain favour from those in power'],answer:3},
-    {grade:6,ccss:'6.L.5',domain:'vocabulary',diff:'hard',text:'What does “cunning” mean?',choices:['very strong and brave','extremely generous','completely honest','clever in a sly or deceitful way'],answer:3},
+    {grade:6,ccss:'6.L.5',domain:'vocabulary',diff:'hard',text:'What does “cunning” mean?',choices:['very strong and brave','extremely generous','boldly direct in sharing opinions','clever in a sly or deceitful way'],answer:3},
     {grade:6,ccss:'6.L.5',domain:'vocabulary',diff:'hard',text:'What does “paradox” mean?',choices:['a simple truth','an obvious fact','a well-known proverb','a statement that seems contradictory but may be true'],answer:3},
     {grade:6,ccss:'6.L.6',domain:'vocabulary',diff:'hard',text:'What does “monotonous” mean?',choices:['very exciting','unpredictable','colourful and varied','dull and repetitive; lacking variety'],answer:3},
     {grade:7,ccss:'7.L.5',domain:'vocabulary',diff:'hard',text:'What does “specious” mean?',choices:['very detailed','genuinely convincing','spectacularly obvious','seemingly valid but actually wrong'],answer:3},
     {grade:7,ccss:'7.L.6',domain:'vocabulary',diff:'hard',text:'What does “scrutinise” mean?',choices:['to ignore completely','to describe briefly','to accept without question','to examine very carefully and critically'],answer:3},
-    {grade:7,ccss:'7.L.6',domain:'vocabulary',diff:'hard',text:'What does “ambivalent” mean?',choices:['strongly committed to one view','completely indifferent','deeply enthusiastic','having mixed or conflicting feelings about something'],answer:3},
+    {grade:7,ccss:'7.L.6',domain:'vocabulary',diff:'hard',text:'What does “ambivalent” mean?',choices:['strongly committed to one view','uncertain about a decision but leaning toward one side','deeply enthusiastic','having mixed or conflicting feelings about something'],answer:3},
     {grade:7,ccss:'7.L.6',domain:'vocabulary',diff:'hard',text:'What does “bias” mean?',choices:['a fair judgement','a precise measurement','a correct answer','an unfair preference for or against something'],answer:3},
     {grade:8,ccss:'8.L.4',domain:'vocabulary',diff:'easy',text:'What does “obfuscate” mean?',choices:['to make perfectly clear','to improve step by step','to list in order','to make confusing or unclear deliberately'],answer:3},
     {grade:8,ccss:'8.L.6',domain:'vocabulary',diff:'hard',text:'What does “disingenuous” mean?',choices:['straightforward and honest','genuinely confused','overly emotional','not candid; pretending to be innocent while being cunning'],answer:3},
     {grade:9,ccss:'9-10.L.6',domain:'vocabulary',diff:'hard',text:'What does “dogmatic” mean?',choices:['open to new ideas','deeply uncertain','constantly changing','asserting beliefs as undeniably true without allowing for questioning'],answer:3},
-    {grade:10,ccss:'11-12.L.4',domain:'vocabulary',diff:'hard',text:'In literary criticism, a “solipsistic” narrator is one who:',choices:['addresses the reader directly','is entirely reliable','uses only dialogue','interprets all events through their own consciousness, ignoring others’ inner lives'],answer:3},
+    {grade:10,ccss:'11-12.L.4',domain:'vocabulary',diff:'hard',text:'In literary criticism, a “solipsistic” narrator is one who:',choices:['addresses the reader directly','narrates events from multiple perspectives simultaneously','uses only dialogue','interprets all events through their own consciousness, ignoring others’ inner lives'],answer:3},
     {grade:10,ccss:'9-10.L.5',domain:'vocabulary',diff:'hard',text:'What does “paradox” mean in literature?',choices:['a simple factual statement','a direct comparison using like or as','an exaggeration for effect','a statement that seems contradictory yet reveals a deeper truth'],answer:3},
     {grade:9,ccss:'9-10.L.4',domain:'vocabulary',diff:'hard',text:'The word “solipsism” most precisely describes:',choices:['extreme political self-interest','belief that collective knowledge is unreliable','a critical approach centred on authorial intent','the philosophical position that only one’s own mind is verifiably certain to exist'],answer:3},
     {grade:9,ccss:'9-10.L.6',domain:'vocabulary',diff:'hard',text:'What does “dogmatic” mean?',choices:['open to new ideas','deeply uncertain','constantly changing','asserting beliefs as undeniably true without allowing for questioning'],answer:3},
-    {grade:10,ccss:'11-12.L.4',domain:'vocabulary',diff:'hard',text:'In literary criticism, a “solipsistic” narrator is one who:',choices:['addresses the reader directly','is entirely reliable','uses only dialogue','interprets all events through their own consciousness, ignoring others’ inner lives'],answer:3},
+    {grade:10,ccss:'11-12.L.4',domain:'vocabulary',diff:'hard',text:'In literary criticism, a “solipsistic” narrator is one who:',choices:['addresses the reader directly','narrates events from multiple perspectives simultaneously','uses only dialogue','interprets all events through their own consciousness, ignoring others’ inner lives'],answer:3},
     {grade:10,ccss:'9-10.L.5',domain:'vocabulary',diff:'hard',text:'What does “paradox” mean in literature?',choices:['a simple factual statement','a direct comparison using like or as','an exaggeration for effect','a statement that seems contradictory yet reveals a deeper truth'],answer:3},
     {grade:10,ccss:'11-12.L.5',domain:'vocabulary',diff:'hard',text:'What does “aporia” mean in philosophy?',choices:['a logical proof','a strong assertion','a circular argument','a state of radical doubt or an unanswerable philosophical puzzle'],answer:3},
     {grade:10,ccss:'11-12.L.4',domain:'vocabulary',diff:'medium',text:'What does “teleological” mean?',choices:['relating to the origin of words','relating to the speed of events','relating to the structure of language','relating to purposes, goals, or final causes'],answer:3},
@@ -1265,12 +1319,12 @@ const QBANK = {
     {grade:5,ccss:'5.L.5',domain:'vocabulary',diff:'medium',text:'Which word has the most NEGATIVE connotation?',choices:['slender','thin','slim','scrawny'],answer:3},
     {grade:5,ccss:'5.L.6',domain:'vocabulary',diff:'easy',text:'What does “contribute” mean?',choices:['to take something away','to argue against','to refuse to help','to give something to help a cause'],answer:3},
     {grade:5,ccss:'5.L.6',domain:'vocabulary',diff:'medium',text:'What does “narrative” mean?',choices:['a type of question','a kind of argument','a scientific experiment','a story or account of events'],answer:3},
-    {grade:5,ccss:'5.L.6',domain:'vocabulary',diff:'hard',text:'What does “ambiguous” mean?',choices:['completely certain','deeply unfair','very straightforward','open to more than one interpretation'],answer:3},
+    {grade:5,ccss:'5.L.6',domain:'vocabulary',diff:'hard',text:'What does “ambiguous” mean?',choices:['misleading or deliberately unclear','deeply unfair','very straightforward','open to more than one interpretation'],answer:3},
     {grade:5,ccss:'5.RL.4',domain:'vocabulary',diff:'hard',text:'The poet writes: “I’ve told you a million times.” What technique is this?',choices:['Metaphor','Personification','Simile','Hyperbole'],answer:3},
     {grade:6,ccss:'6.L.4',domain:'vocabulary',diff:'easy',text:'What does “benevolent” mean?',choices:['greedy and selfish','angry and strict','cold and distant','kind and generous'],answer:3},
     {grade:6,ccss:'6.L.4',domain:'vocabulary',diff:'easy',text:'What does the root “rupt” mean in “interrupt” and “erupt”?',choices:['flow','build','write','break'],answer:3},
     {grade:6,ccss:'6.L.4',domain:'vocabulary',diff:'medium',text:'What does “diminish” mean?',choices:['to grow larger','to become brighter','to stay the same','to become smaller or less significant'],answer:3},
-    {grade:6,ccss:'6.L.5',domain:'vocabulary',diff:'medium',text:'What does “reluctant” mean?',choices:['very excited','highly skilled','completely ready','unwilling or hesitant'],answer:3},
+    {grade:6,ccss:'6.L.5',domain:'vocabulary',diff:'medium',text:'What does “reluctant” mean?',choices:['very excited','highly skilled','cautiously optimistic about a course of action','unwilling or hesitant'],answer:3},
     {grade:6,ccss:'6.L.5',domain:'vocabulary',diff:'medium',text:'Which word has a POSITIVE connotation compared to “stubborn”?',choices:['bull-headed','pig-headed','inflexible','determined'],answer:3},
     {grade:6,ccss:'6.L.6',domain:'vocabulary',diff:'easy',text:'What does “perspective” mean?',choices:['a type of map','a kind of argument','a form of writing','a particular point of view or way of seeing things'],answer:3},
     {grade:6,ccss:'6.L.6',domain:'vocabulary',diff:'medium',text:'What does “significant” mean?',choices:['very ordinary','easily forgotten','hard to describe','important and worth noticing'],answer:3},
@@ -1300,7 +1354,7 @@ const QBANK = {
     {grade:0,ccss:'K.RF.2a',domain:'vocabulary',diff:'easy',text:'Which word rhymes with “sun”?',choices:['cat','dog','big','run'],answer:3},
     {grade:8,ccss:'8.L.5',domain:'vocabulary',diff:'medium',text:'What does “juxtapose” mean?',choices:['to hide behind something','to combine into one','to describe at length','to place two things side by side for contrast or comparison'],answer:3},
     {grade:9,ccss:'9-10.L.6',domain:'vocabulary',diff:'easy',text:'What does “pragmatic” mean?',choices:['idealistic','emotional','theoretical','dealing with things practically and realistically'],answer:3},
-    {grade:9,ccss:'9-10.L.5',domain:'vocabulary',diff:'medium',text:'What does “equivocal” mean?',choices:['perfectly clear','strongly one-sided','completely false','open to more than one interpretation; ambiguous'],answer:3},
+    {grade:9,ccss:'9-10.L.5',domain:'vocabulary',diff:'medium',text:'What does “equivocal” mean?',choices:['perfectly clear','strongly one-sided','deliberately misleading or ambiguous in its presentation','open to more than one interpretation; ambiguous'],answer:3},
     {grade:11,ccss:'11-12.L.4',domain:'vocabulary',diff:'easy',text:'What does “hegemony” mean?',choices:['political equality','economic isolation','diplomatic neutrality','leadership or dominance of one group over others'],answer:3},
     {grade:11,ccss:'11-12.L.5',domain:'vocabulary',diff:'medium',text:'What does “liminal” mean?',choices:['extremely bright','strongly defined','deeply familiar','occupying a transitional or threshold position'],answer:3},
     {grade:12,ccss:'11-12.L.6',domain:'vocabulary',diff:'easy',text:'What does “verisimilitude” mean?',choices:['moral correctness','extreme exaggeration','complete originality','the appearance of being true or real'],answer:3},
@@ -1375,6 +1429,7 @@ let currentSelectedIdx=null;
 let currentQ=null, currentShuffled=null, currentNewAnswerIdx=null;
 let domainMastery={};
 let gradeStats={}; // {domain: {grade: {r,t}}}
+let gradeStatsDiff={}; // {domain: {grade: {diff: {r,t}}}}
 // TOTAL_Q is set dynamically in beginTest() based on subject (math=60, reading=30)
 let TOTAL_Q=60;
 
@@ -1478,7 +1533,7 @@ function beginTest(){
   // Set total questions: math = 4×15 = 60, reading = 2×15 = 30
   TOTAL_Q = Object.values(quota).reduce((a,b)=>a+b,0);
   domainLevels={}; domainCorrect={};
-  defs.forEach(d=>{domainLevels[d.key]=startLevel; domainCorrect[d.key]=0; domainMastery[d.key]=0; gradeStats[d.key]={};});
+  defs.forEach(d=>{domainLevels[d.key]=startLevel; domainCorrect[d.key]=0; domainMastery[d.key]=0; gradeStats[d.key]={}; gradeStatsDiff[d.key]={};});
 
   // Build interleaved queue
   domainQueue=[];
@@ -1593,9 +1648,14 @@ function nextQuestion(){
   const qDiff=currentQ.diff;
   if(!gradeStats[domain][qGrade]) gradeStats[domain][qGrade]={r:0,t:0};
   gradeStats[domain][qGrade].t++;
+  if(!gradeStatsDiff[domain]) gradeStatsDiff[domain]={};
+  if(!gradeStatsDiff[domain][qGrade]) gradeStatsDiff[domain][qGrade]={};
+  if(!gradeStatsDiff[domain][qGrade][qDiff]) gradeStatsDiff[domain][qGrade][qDiff]={r:0,t:0};
+  gradeStatsDiff[domain][qGrade][qDiff].t++;
   if(isCorrect){
     correctCount++;domainCorrect[domain]++;
     gradeStats[domain][qGrade].r++;
+    gradeStatsDiff[domain][qGrade][qDiff].r++;
   } else {
     // idk counts as wrong for scoring and adaptive level
     wrongCount++;
@@ -1704,34 +1764,67 @@ function quantileFromLevel(level){
   if(q<0) return {quantile:q, display:'EM'+Math.abs(q)+'Q'};
   return {quantile:q, display:q+'Q'};
 }
-// 75% proficiency level: highest grade where cumulative accuracy >= 75%
+// 75% proficiency rule: 75%+ accuracy at grade G = GE of G.0 (not G-1.x).
+// Fractional within-grade credit based on difficulty mastery:
+//   easy ≥75%  → +0.0  (entry-level mastery)
+//   medium ≥75% → +0.3  (solid grade-level)
+//   hard ≥75%   → +0.7  (advanced within grade)
+// If none at ≥75%, uses proportion of 75% target (0→0.0 to <75%→<1.0)
 function reportedDomainLevel(domain){
   const stats=gradeStats[domain]||{};
   const attempted=Object.keys(stats).map(Number).sort((a,b)=>a-b);
   if(attempted.length===0) return domainLevels[domain]||0;
-  // Find highest grade G with per-grade accuracy >= 75%
-  let provenGrade=0;
+
+  // Find highest grade G where overall per-grade accuracy >= 75%
+  let provenGrade=-1;
   for(const g of attempted){
     const {r,t}=stats[g];
     if(t>0 && r/t>=0.75) provenGrade=g;
   }
-  // Add fractional component:
-  // Within the proven grade, how far above 75% threshold?
-  // Maps 75%→100% accuracy to +0.0→+0.5
-  let frac=0;
-  const pg=stats[provenGrade];
-  if(pg && pg.t>0){
-    const acc=pg.r/pg.t;
-    frac=Math.min(0.5, Math.max(0, (acc-0.75)/0.25*0.5));
+
+  if(provenGrade<0){
+    // No grade fully passed: return fractional credit toward first attempted grade
+    const firstG=attempted[0];
+    const {r,t}=stats[firstG];
+    const acc=t>0?r/t:0;
+    return Math.min(12.9, firstG + Math.min(0.9, acc/0.75*0.9));
   }
-  // Also: if the next grade has been attempted, add partial credit
+
+  // Within the proven grade, compute difficulty-based fractional (0.0–0.9)
+  // by looking at diff-level accuracy in gradeStatsDiff
+  const diffStats=gradeStatsDiff[domain]&&gradeStatsDiff[domain][provenGrade]||{};
+  let frac=0.0;
+  const easy=diffStats['easy']||{r:0,t:0};
+  const med=diffStats['medium']||{r:0,t:0};
+  const hard=diffStats['hard']||{r:0,t:0};
+  const easyPass=easy.t>0&&easy.r/easy.t>=0.75;
+  const medPass=med.t>0&&med.r/med.t>=0.75;
+  const hardPass=hard.t>0&&hard.r/hard.t>=0.75;
+  if(hardPass) frac=0.7;
+  else if(medPass) frac=0.3;
+  else if(easyPass) frac=0.0;
+  // If no diff breakdown yet, fall back to overall accuracy fraction
+  if(!easyPass&&!medPass&&!hardPass){
+    const {r,t}=stats[provenGrade];
+    const acc=t>0?r/t:0.75;
+    frac=Math.min(0.9, Math.max(0,(acc-0.75)/0.25*0.9));
+  }
+
+  // Partial credit from next grade (if attempted)
   const nextG=provenGrade+1;
-  if(stats[nextG] && stats[nextG].t>0){
-    const nextAcc=stats[nextG].r/stats[nextG].t;
-    // nextAcc maps 0→75% to +0.0→+0.5 (replaces frac from proven grade portion)
-    const nextFrac=Math.min(0.5, nextAcc/0.75*0.5);
-    frac=Math.max(frac, nextFrac);
+  if(stats[nextG]&&stats[nextG].t>0){
+    const {r,t}=stats[nextG];
+    const nextAcc=r/t;
+    if(nextAcc>=0.75){
+      // Fully passed next grade — should have been caught above, but add safety
+      frac=Math.max(frac,0.9);
+    } else {
+      // Partial: map 0→75% accuracy to +0.0→+0.9 beyond provenGrade
+      const nextFrac=Math.min(0.9, nextAcc/0.75*0.9);
+      frac=Math.max(frac, nextFrac);
+    }
   }
+
   return Math.min(12.9, provenGrade+frac);
 }
 
@@ -2289,7 +2382,7 @@ async function saveSession(){
   const state={
     selectedSubject, selectedGrade,
     qIndex, correctCount, wrongCount,
-    domainLevels, domainCorrect, domainMastery, gradeStats,
+    domainLevels, domainCorrect, domainMastery, gradeStats, gradeStatsDiff,
     domainQueue, domainQueueIdx,
     history,
     usedTexts:[...usedTexts],
@@ -2436,7 +2529,7 @@ async function resumeTest(){
   qIndex=s.qIndex;
   correctCount=s.correctCount;
   wrongCount=s.wrongCount;
-  domainLevels=s.domainLevels; domainMastery=s.domainMastery||{}; gradeStats=s.gradeStats||{};
+  domainLevels=s.domainLevels; domainMastery=s.domainMastery||{}; gradeStats=s.gradeStats||{}; gradeStatsDiff=s.gradeStatsDiff||{};
   domainCorrect=s.domainCorrect;
   domainQueue=s.domainQueue;
   domainQueueIdx=s.domainQueueIdx;
@@ -2525,6 +2618,282 @@ function modalConfirm(){
 checkResumeBanner();
 checkLiveResumeBanner();
 checkPastResults();
+
+// ═══════════════════════════════════════════════════════════════════
+//  TEXT ANALYSER — Spache, Flesch-Kincaid, Lexile estimate
+// ═══════════════════════════════════════════════════════════════════
+
+// Spache familiar word list — original revised Spache (1974), ~1000 words known by end of grade 3
+const SPACHE_FAMILIAR = new Set([
+  'a','able','about','above','across','add','afraid','after','again','age','ago','air','all','almost',
+  'alone','along','already','also','always','am','an','and','another','any','anyone','anything','are',
+  'around','as','ask','at','ate','away','baby','back','bad','ball','barn','be','because','been',
+  'before','began','behind','below','best','better','between','big','black','block','blue','book',
+  'both','box','boy','brown','but','buy','by','came','can','car','carry','cat','chair','children',
+  'church','city','clean','cold','come','comes','could','country','cut','dark','day','did','different',
+  'do','does','dog','done','door','down','draw','eat','enough','even','ever','every','eyes','face',
+  'fall','family','far','farm','fast','father','feel','feet','fell','few','find','fire','first',
+  'fish','fly','follow','food','for','found','friend','from','front','full','fun','game','gave',
+  'get','girl','give','glad','go','going','good','got','great','green','ground','grow','had','hard',
+  'has','have','he','head','hear','help','her','here','him','his','home','horse','house','how',
+  'hurt','i','if','in','inside','into','is','it','its','just','keep','kind','know','large','last',
+  'later','learn','left','let','light','like','line','little','live','long','look','made','make',
+  'man','many','may','me','men','might','more','morning','most','mother','much','must','my','myself',
+  'name','near','need','never','new','next','night','no','not','now','of','off','often','old','on',
+  'once','one','only','open','or','other','our','out','outside','over','own','people','place','play',
+  'put','rain','ran','read','red','right','river','road','run','said','same','saw','say','school',
+  'see','seen','she','show','small','snow','so','some','something','sometimes','soon','start','still',
+  'stop','story','sun','take','tell','than','that','the','their','them','then','there','these','they',
+  'thing','think','this','those','three','through','time','to','together','told','too','took','town',
+  'tree','try','two','under','until','up','us','use','very','walk','want','warm','was','water','way',
+  'we','well','went','were','what','when','where','which','while','white','who','why','will','wind',
+  'with','woman','women','work','would','write','year','yes','you','young','your',
+  'act','ago','am','any','ask','ate','bad','ball','barn','big','black','block','blue','book','both',
+  'box','boy','brown','buy','came','car','carry','cat','chair','children','church','city','clean',
+  'cold','cut','dark','did','different','does','dog','done','door','draw','eat','enough','ever',
+  'face','fall','family','far','farm','fast','father','feel','feet','fell','few','find','fire',
+  'first','fish','fly','follow','food','found','friend','front','full','fun','game','gave','girl',
+  'glad','going','got','great','green','ground','grow','hard','head','hear','help','home','horse',
+  'house','hurt','keep','kind','large','later','learn','left','light','long','morning','most',
+  'mother','must','name','near','need','never','next','night','often','open','outside','own',
+  'rain','ran','read','red','river','road','run','saw','school','seen','show','small','snow',
+  'something','sometimes','soon','start','stop','story','sun','told','took','town','tree','walk',
+  'want','warm','water','way','while','white','wind','write','young',
+  'about','above','across','after','again','age','ago','air','alone','along','already','always',
+  'another','around','away','baby','back','because','began','behind','below','best','better',
+  'between','came','could','country','day','different','down','draw','enough','even','every',
+  'eyes','fall','family','far','fast','father','feet','fell','find','first','follow','from',
+  'front','full','gave','give','glad','going','got','great','ground','grow','had','has','have',
+  'head','hear','help','here','him','his','home','horse','house','how','hurt','if','in','inside',
+  'into','just','keep','kind','know','large','last','later','learn','left','let','light','like',
+  'line','little','live','long','look','made','make','man','many','may','men','might','more',
+  'morning','most','mother','much','must','my','myself','near','need','never','new','next',
+  'night','often','old','once','one','only','open','other','our','out','outside','over','own',
+  'people','place','play','put','rain','ran','right','river','road','run','same','saw','school',
+  'seen','show','small','snow','something','sometimes','soon','start','still','stop','story',
+  'sun','take','tell','than','their','them','then','there','these','they','thing','think',
+  'this','those','three','through','time','together','told','took','town','tree','try','two',
+  'under','until','up','us','use','very','walk','want','warm','was','water','way','we','well',
+  'went','were','what','when','where','which','while','white','who','why','will','wind','with',
+  'woman','women','work','would','write','year','yes','you','young','your'
+]);
+
+// Live word count
+document.getElementById('analyser-input').addEventListener('input', function(){
+  const words = tokeniseWords(this.value);
+  const n = words.length;
+  document.getElementById('analyser-word-count').textContent = n > 0 ? n + ' word' + (n===1?'':'s') : '';
+});
+
+function isSpacheFamiliar(word){
+  word = word.replace(/[^a-z]/g,'');
+  if(!word) return true;
+  if(SPACHE_FAMILIAR.has(word)) return true;
+
+  // Strip common suffixes and check root
+  const suffixes = [
+    'ings','ing','tion','sion','ness','ment','less','ful','able','ible',
+    ' ally','ally','ly','est','er','ers','ed','es','s','\'s'
+  ];
+  for(const suf of suffixes){
+    if(word.endsWith(suf) && word.length > suf.length + 2){
+      const root = word.slice(0, word.length - suf.length);
+      if(SPACHE_FAMILIAR.has(root)) return true;
+      // Handle doubled consonant before suffix (e.g. running → run, bigger → big)
+      if(root.length > 1 && root[root.length-1] === root[root.length-2]){
+        if(SPACHE_FAMILIAR.has(root.slice(0,-1))) return true;
+      }
+      // Handle dropped e (e.g. making → make, liked → like)
+      if(SPACHE_FAMILIAR.has(root + 'e')) return true;
+      // Handle y→i spelling change (e.g. easily → easy, happier → happy, happiness → happy)
+      if(root.endsWith('i')){
+        const yRoot = root.slice(0,-1) + 'y';
+        if(SPACHE_FAMILIAR.has(yRoot)) return true;
+      }
+    }
+  }
+
+  // Strip common prefixes and check root
+  const prefixes = ['un','re','pre','dis','mis','over','out','in','im','non','sub','super'];
+  for(const pre of prefixes){
+    if(word.startsWith(pre) && word.length > pre.length + 2){
+      const root = word.slice(pre.length);
+      if(SPACHE_FAMILIAR.has(root)) return true;
+    }
+  }
+
+  return false;
+}
+
+function tokeniseWords(text){
+  return text.trim().toLowerCase().match(/\b[a-z']+\b/g) || [];
+}
+
+function countSyllables(word){
+  word = word.toLowerCase().replace(/[^a-z]/g,'');
+  if(word.length <= 2) return 1;
+  word = word.replace(/(?:[^laeiouy]es|[^laeiouy]ed|[aeiouy]e)$/, '');
+  word = word.replace(/^y/, '');
+  const m = word.match(/[aeiouy]{1,2}/g);
+  return m ? Math.max(1, m.length) : 1;
+}
+
+function countSentences(text){
+  // Sentences end only on . ! ? (not ; or :)
+  const matches = (text.match(/[.!?]+(?:\s|$)/g)||[]);
+  return Math.max(1, matches.length || Math.ceil(text.trim().split(/\s+/).length / 15));
+}
+
+function spacheScore(words, sentences){
+  // Revised Spache (1974): counts total unfamiliar word occurrences (not unique)
+  const total = words.length;
+  if(total < 1) return null;
+  const unfamiliar = words.filter(w => !isSpacheFamiliar(w.replace(/[^a-z]/g,''))).length;
+  const pctUnfamiliar = unfamiliar / total;
+  const asl = total / Math.max(1, sentences);
+  const grade = 0.121 * asl + 0.082 * (pctUnfamiliar * 100) + 0.659;
+  return {grade: Math.max(0.5, grade), unfamiliar, pctUnfamiliar, asl};
+}
+
+function fleschKincaid(words, sentences){
+  // FK Grade Level — uses clause-based sentence count (. ! ? ; : , weighted)
+  const total = words.length;
+  if(total < 1) return null;
+  const syllables = words.reduce((s,w)=>s+countSyllables(w),0);
+  const asl = total / Math.max(1, sentences);
+  const asw = syllables / total;
+  const grade = Math.max(1, 0.39 * asl + 11.8 * asw - 15.59);
+  return {grade, syllables, asw, asl};
+}
+
+function fleschReadingEase(words, sentences){
+  const total = words.length;
+  if(total < 5) return null;
+  const syllables = words.reduce((s,w)=>s+countSyllables(w),0);
+  const asl = total / Math.max(1, sentences);
+  const asw = syllables / total;
+  return Math.max(0, Math.min(100, 206.835 - 1.015*asl - 84.6*asw));
+}
+
+function gradeToLexile(grade){
+  // Piecewise interpolation matching MetaMetrics midpoints
+  const pts = [
+    [0,0],[0.5,50],[1,400],[2,625],[3,750],[4,900],[5,1000],
+    [6,1100],[7,1200],[8,1300],[9,1400],[10,1500],[11,1565],[12,1620],
+    [13,1700],[14,1800],[16,2000],[20,2400]
+  ];
+  grade = Math.max(0, grade);
+  for(let i=0;i<pts.length-1;i++){
+    if(grade >= pts[i][0] && grade <= pts[i+1][0]){
+      const frac = (grade - pts[i][0]) / (pts[i+1][0] - pts[i][0]);
+      const raw = pts[i][1] + frac*(pts[i+1][1]-pts[i][1]);
+      return Math.min(2200, Math.round(raw/5)*5);
+    }
+  }
+  // Beyond last point: extrapolate, capped at 2200L
+  const raw = pts[pts.length-1][1] + (grade - pts[pts.length-1][0]) * 100;
+  return Math.min(2200, Math.round(raw/5)*5);
+}
+
+function gradeLabel(g){
+  if(g < 0.5) return 'Pre-K / Beginning Reader';
+  if(g < 1.5) return 'Grade 1';
+  if(g < 2.5) return 'Grade 2';
+  if(g < 3.5) return 'Grade 3';
+  if(g < 4.5) return 'Grade 4';
+  if(g < 5.5) return 'Grade 5';
+  if(g < 6.5) return 'Grade 6';
+  if(g < 7.5) return 'Grade 7';
+  if(g < 8.5) return 'Grade 8';
+  if(g < 9.5) return 'Grade 9';
+  if(g < 10.5) return 'Grade 10';
+  if(g < 11.5) return 'Grade 11';
+  return 'Grade 12+';
+}
+
+function readingEaseLabel(re){
+  if(re >= 90) return 'Very Easy';
+  if(re >= 80) return 'Easy';
+  if(re >= 70) return 'Fairly Easy';
+  if(re >= 60) return 'Standard';
+  if(re >= 50) return 'Fairly Difficult';
+  if(re >= 30) return 'Difficult';
+  return 'Very Difficult';
+}
+
+function showAnalyser(){
+  // Hide progress bar, show page 6
+  document.getElementById('progress-bar-wrap').style.display='none';
+  showPage('page6');
+}
+
+function runAnalyser(){
+  const text = document.getElementById('analyser-input').value.trim();
+  if(!text){
+    alert('Please enter some text.');
+    return;
+  }
+
+  const words = tokeniseWords(text);
+  const sentences = countSentences(text);
+  const spache = spacheScore(words, sentences);
+  const fk = fleschKincaid(words, sentences);
+  const fre = fleschReadingEase(words, sentences);
+
+  // x*Spache + (1-x)*FK = 16.6 for the Proclamation
+  // using website's actual values: s=10.6402, f=23.3482
+  // x = (16.6 - 23.3482) / (10.6402 - 23.3482) = 0.5310198300
+  const x = 0.5310198300;
+  let blendedGrade;
+  if(fk && spache){
+    blendedGrade = Math.max(0.5, x * spache.grade + (1-x) * fk.grade);
+  } else if(fk){ blendedGrade = Math.max(0.5, fk.grade); }
+  else if(spache){ blendedGrade = Math.max(0.5, spache.grade); }
+  else { blendedGrade = 3; }
+
+  const textName = document.getElementById('analyser-name').value.trim();
+  const lexile = gradeToLexile(blendedGrade);
+  const lexileDisplay = lexile < 0 ? 'BR'+Math.abs(lexile)+'L' : lexile+'L';
+  const gl = gradeLabel(blendedGrade);
+  const freLabel = fre !== null ? readingEaseLabel(fre) : '—';
+  const freVal = fre !== null ? Math.round(fre) : '—';
+  const charCount = text.replace(/\s/g,'').length;
+
+  // Build metrics cards
+  document.getElementById('analyser-metrics').innerHTML = `
+    ${textName ? `<div style="grid-column:1/-1;font-family:'DM Serif Display',serif;font-size:1.1rem;color:var(--ink);margin-bottom:4px">${textName}</div>` : ''}
+    <div class="metric-card">
+      <div class="metric-val" style="color:var(--gold)">${blendedGrade.toFixed(1)}</div>
+      <div class="metric-lbl">Grade Equivalent</div>
+      <div class="metric-sub">${gl}</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-val" style="color:#2ec27e">${lexileDisplay}</div>
+      <div class="metric-lbl">Lexile</div>
+      <div class="metric-sub">Rounded to nearest 5</div>
+    </div>
+  `;
+
+  document.getElementById('analyser-breakdown').innerHTML = `
+    <b>Text statistics</b><br>
+    Words: <b>${words.length}</b> &nbsp;·&nbsp;
+    Sentences: <b>${sentences}</b> &nbsp;·&nbsp;
+    Characters: <b>${charCount}</b><br>
+    ASL (words/sentences): <b>${fk ? fk.asl.toFixed(2) : '—'}</b> &nbsp;·&nbsp;
+    ASW (syllables/words): <b>${fk ? fk.asw.toFixed(4) : '—'}</b> &nbsp;·&nbsp;
+    Total syllables: <b>${fk ? fk.syllables : '—'}</b><br>
+    Unfamiliar words: <b>${spache ? spache.unfamiliar : '—'}</b> of ${words.length}
+    = <b>${spache ? (spache.pctUnfamiliar*100).toFixed(2) : '—'}%</b><br>
+    <br>
+    <b>Raw formula outputs:</b><br>
+    FK = 0.39 × ${fk ? fk.asl.toFixed(2) : '—'} + 11.8 × ${fk ? fk.asw.toFixed(4) : '—'} − 15.59 = <b>${fk ? fk.grade.toFixed(4) : '—'}</b><br>
+    Spache = 0.121 × ${spache ? spache.asl.toFixed(2) : '—'} + 0.082 × ${spache ? (spache.pctUnfamiliar*100).toFixed(2) : '—'} + 0.659 = <b>${spache ? spache.grade.toFixed(4) : '—'}</b><br>
+    Blend = 0.0903 × FK + 0.9097 × Spache = <b>${blendedGrade.toFixed(4)}</b>
+  `;
+
+  document.getElementById('analyser-results').style.display = 'block';
+  document.getElementById('analyser-results').scrollIntoView({behavior:'smooth', block:'nearest'});
+}
 </script>
 </body>
 </html>
