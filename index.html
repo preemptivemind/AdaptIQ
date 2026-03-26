@@ -446,7 +446,7 @@ body::before{
           <div class="grade-equiv-desc" id="ge-desc"></div>
         </div>
       </div>
-      <!-- Lexile / Quantile measure -->
+      <!-- Estimated Lexile / Quantile measure -->
       <div id="measure-card" style="display:none;border:1px solid var(--border);border-radius:18px;padding:18px 22px;margin-bottom:24px;display:flex;align-items:center;gap:18px;background:var(--card-bg)">
         <div style="flex-shrink:0;text-align:center;min-width:80px">
           <div id="measure-num" style="font-family:'DM Serif Display',serif;font-size:1.9rem;line-height:1;font-weight:400"></div>
@@ -537,7 +537,7 @@ body::before{
     <div class="analyser-card">
       <button class="btn-ghost" onclick="goToPage1()" style="margin-bottom:20px;font-size:.78rem;">← Back</button>
       <h2 class="analyser-title">Text Analyser</h2>
-      <p class="analyser-sub">Paste any text below to get its grade equivalent and Lexile measure using the Spache familiar word list and Flesch-Kincaid formula.</p>
+      <p class="analyser-sub">Paste any text below to get its grade equivalent and Estimated Lexile measure using the Spache familiar word list and Flesch-Kincaid formula.</p>
       <div style="margin-bottom:14px">
         <input type="text" id="analyser-name" placeholder="Text name or title (optional)" style="width:100%;padding:10px 14px;border:2px solid var(--border);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:.88rem;color:var(--ink);background:var(--paper);outline:none;transition:border-color .2s;" onfocus="this.style.borderColor='#a0a8c0'" onblur="this.style.borderColor='var(--border)'"/>
       </div>
@@ -550,7 +550,6 @@ body::before{
       <div class="analyser-results" id="analyser-results">
         <div class="analyser-metrics" id="analyser-metrics"></div>
         <div class="analyser-breakdown" id="analyser-breakdown"></div>
-        <p class="analyser-note">Grade equivalent uses a calibrated blend of Flesch-Kincaid (clause-weighted) and Spache readability formulas. Lexile is capped at 2200L. Note: archaic or legal texts (e.g. 19th-century documents) will be underestimated — accurate Lexile scoring for such texts requires a word-frequency corpus not available in this tool.</p>
       </div>
     </div>
   </div>
@@ -1691,14 +1690,14 @@ function geFromLevel(level){
   return {ge,geDisplay,geFloor,geDecimal};
 }
 
-// Lexile band midpoints by grade (MetaMetrics typical reader ranges)
+// Estimated Lexile band midpoints by grade (MetaMetrics typical reader ranges)
 // K=BR100L–200L, 1=170–470L, 2=420–650L, 3=520–820L, 4=740–940L,
 // 5=830–1010L, 6=925–1070L, 7=970–1120L, 8=1010–1185L, 9=1050–1260L,
 // 10=1080–1335L, 11=1185–1385L, 12=1185–1385L
 function lexileFromLevel(level){
   const ge=Math.max(0,Math.min(12.9,level));
   // Piecewise linear interpolation across grade midpoints
-  // Lexile midpoints calibrated to end-of-year proficient reader per MetaMetrics
+  // Estimated Lexile midpoints calibrated to end-of-year proficient reader per MetaMetrics
   // K: BR200L–200L range (centre ~100L), Gr1: 200–600L (400L), Gr2: 500–750L (625L),
   // Gr3: 600–900L (750L), Gr4: 800–1000L (900L), Gr5: 900–1100L (1000L),
   // Gr6: 1000–1200L (1100L), Gr7: 1100–1300L (1200L), Gr8: 1200–1400L (1300L),
@@ -1885,7 +1884,7 @@ function endTest(){
   document.getElementById('ge-desc').innerHTML=geDesc;
   document.getElementById('grade-equiv-card').style.background=cardBg;
 
-  // ── Lexile / Quantile measure card ────────────────────────────
+  // ── Estimated Lexile / Quantile measure card ────────────────────────────
   const mCard=document.getElementById('measure-card');
   mCard.style.display='flex';
   if(m){
@@ -1900,15 +1899,15 @@ function endTest(){
       `The Quantile Framework (MetaMetrics) describes math ability on a scale from ~0Q (Kindergarten) to ~1500Q+ (advanced). `+
       `Students performing at ${qDisp} are ready for math content at that Quantile level.`;
   } else {
-    // Reading → Lexile
+    // Reading → Estimated Lexile
     const {lexile,display:lDisp}=lexileFromLevel(overallLevel());
     document.getElementById('measure-num').textContent=lDisp;
     document.getElementById('measure-num').style.color='var(--accent-read)';
-    document.getElementById('measure-unit').textContent='Lexile';
-    document.getElementById('measure-label').textContent='Lexile Framework for Reading';
+    document.getElementById('measure-unit').textContent='Estimated Lexile';
+    document.getElementById('measure-label').textContent='Estimated Lexile Framework for Reading';
     document.getElementById('measure-desc').innerHTML=
       `Estimated Lexile measure: <strong>${lDisp}</strong>. `+
-      `The Lexile Framework (MetaMetrics) measures reading ability from below 0L (beginning readers) to 2000L+. `+
+      `The Estimated Lexile Framework (MetaMetrics) measures reading ability from below 0L (beginning readers) to 2000L+. `+
       `Readers at ${lDisp} can comfortably read texts at that Lexile level with around 75% comprehension.`;
   }
 
@@ -2620,7 +2619,7 @@ checkLiveResumeBanner();
 checkPastResults();
 
 // ═══════════════════════════════════════════════════════════════════
-//  TEXT ANALYSER — Spache, Flesch-Kincaid, Lexile estimate
+//  TEXT ANALYSER — Spache, Flesch-Kincaid, Estimated Lexile
 // ═══════════════════════════════════════════════════════════════════
 
 // Spache familiar word list — original revised Spache (1974), ~1000 words known by end of grade 3
@@ -2861,7 +2860,7 @@ function runAnalyser(){
 
   // Build metrics cards
   document.getElementById('analyser-metrics').innerHTML = `
-    ${textName ? `<div style="grid-column:1/-1;font-family:'DM Serif Display',serif;font-size:1.1rem;color:var(--ink);margin-bottom:4px">${textName}</div>` : ''}
+    ${textName ? `<div style="grid-column:1/-1;font-family:'DM Serif Display',serif;font-size:1.4rem;color:var(--ink);margin-bottom:8px;padding-bottom:10px;border-bottom:1px solid var(--border)">${textName}</div>` : ''}
     <div class="metric-card">
       <div class="metric-val" style="color:var(--gold)">${blendedGrade.toFixed(1)}</div>
       <div class="metric-lbl">Grade Equivalent</div>
@@ -2869,7 +2868,7 @@ function runAnalyser(){
     </div>
     <div class="metric-card">
       <div class="metric-val" style="color:#2ec27e">${lexileDisplay}</div>
-      <div class="metric-lbl">Lexile</div>
+      <div class="metric-lbl">Estimated Lexile</div>
       <div class="metric-sub">Rounded to nearest 5</div>
     </div>
   `;
