@@ -446,7 +446,7 @@ body::before{
           <div class="grade-equiv-desc" id="ge-desc"></div>
         </div>
       </div>
-      <!-- Estimated Lexile / Quantile measure -->
+      <!-- Estimated Lexile / Estimated Quantile measure -->
       <div id="measure-card" style="display:none;border:1px solid var(--border);border-radius:18px;padding:18px 22px;margin-bottom:24px;display:flex;align-items:center;gap:18px;background:var(--card-bg)">
         <div style="flex-shrink:0;text-align:center;min-width:80px">
           <div id="measure-num" style="font-family:'DM Serif Display',serif;font-size:1.9rem;line-height:1;font-weight:400"></div>
@@ -1730,7 +1730,7 @@ function lexileFromLevel(level){
   return {lexile, display:lexile+'L'};
 }
 
-// Quantile calibrated to ~65th-percentile within each end-of-year grade band (MetaMetrics)
+// Estimated Quantile calibrated to ~65th-percentile within each end-of-year grade band (MetaMetrics)
 // K: EM500–EM100  Gr1: EM140–380  Gr2: 100–600  Gr3: 300–790
 // Gr4: 530–875  Gr5: 660–960  Gr6: 760–1060  Gr7: 850–1160
 // Gr8: 960–1260  Gr9: 1050–1330  Gr10: 1080–1350  Gr11: 1120–1380  Gr12: 1200–1450
@@ -1884,19 +1884,19 @@ function endTest(){
   document.getElementById('ge-desc').innerHTML=geDesc;
   document.getElementById('grade-equiv-card').style.background=cardBg;
 
-  // ── Estimated Lexile / Quantile measure card ────────────────────────────
+  // ── Estimated Lexile / Estimated Quantile measure card ────────────────────────────
   const mCard=document.getElementById('measure-card');
   mCard.style.display='flex';
   if(m){
-    // Math → Quantile
+    // Math → Estimated Quantile
     const {quantile,display:qDisp}=quantileFromLevel(overallLevel());
     document.getElementById('measure-num').textContent=qDisp;
     document.getElementById('measure-num').style.color='var(--accent-math)';
-    document.getElementById('measure-unit').textContent='Quantile';
-    document.getElementById('measure-label').textContent='Quantile Framework for Math';
+    document.getElementById('measure-unit').textContent='Estimated Quantile';
+    document.getElementById('measure-label').textContent='Estimated Quantile Framework for Math';
     document.getElementById('measure-desc').innerHTML=
       `Estimated Quantile measure: <strong>${qDisp}</strong>. `+
-      `The Quantile Framework (MetaMetrics) describes math ability on a scale from ~0Q (Kindergarten) to ~1500Q+ (advanced). `+
+      `The Estimated Quantile Framework (MetaMetrics) describes math ability on a scale from ~0Q (Kindergarten) to ~1500Q+ (advanced). `+
       `Students performing at ${qDisp} are ready for math content at that Quantile level.`;
   } else {
     // Reading → Estimated Lexile
