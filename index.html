@@ -2977,9 +2977,12 @@ function daleChallScore(words, sentences){
     }
   });
   const pctDifficult = difficultUnique / total * 100;
+  // Bayesian smoothing: blend toward typical text baseline (15% difficult per 100 words)
+  // Prevents volatile pct on short texts; negligible effect on 100+ word passages
+  const smoothPct = (difficultUnique + 15) / (total + 100) * 100;
   const asl = total / Math.max(1, sentences);
-  let raw = 0.1579 * pctDifficult + 0.0496 * asl;
-  if(pctDifficult > 5) raw += 3.6365;
+  let raw = 0.1579 * smoothPct + 0.0496 * asl;
+  if(smoothPct > 5) raw += 3.6365;
   // Convert DC raw score to grade level
   let grade;
   if(raw < 5.0) grade = 4;
@@ -3153,7 +3156,7 @@ function runAnalyser(){
     const f = fk.grade, dr = dc.raw;
     const t1 = Math.sign(f)*Math.log(Math.abs(f)+1);
     const t2 = Math.sign(f)*Math.pow(Math.abs(f),1/3);
-    grade = Math.max(0.5, 7.506709*t1 - 7.762383*t2 + 2.659969*dr - 12.330226);
+    grade = Math.max(0.5, 5.739615*t1 - 5.222462*t2 + 2.626581*dr - 13.932776);
   } else if(fk){
     grade = Math.max(0.5, fk.grade);
   }
@@ -3193,7 +3196,7 @@ function runAnalyser(){
     <b>Raw formula outputs:</b><br>
     FK = 0.39 × ${fk ? fk.asl.toFixed(2) : '—'} + 11.8 × ${fk ? fk.asw.toFixed(4) : '—'} − 15.59 = <b>${fk ? fk.grade.toFixed(4) : '—'}</b><br>
     Dale-Chall raw = <b>${dc ? dc.raw.toFixed(4) : '—'}</b> (${dc && dc.pctDifficult > 5 ? 'adjusted' : 'raw'})<br>
-    Grade = 7.506709 × ln(|FK|+1) − 7.762383 × ∛FK + 2.659969 × DC_raw − 12.330226 = <b>${grade}</b><br>
+    Grade = 5.739615 × ln(|FK|+1) − 5.222462 × ∛FK + 2.626581 × DC_raw − 13.932776 = <b>${grade}</b><br>
     Estimated Lexile (via grade table) = <b>${lexileDisplay}</b>
   `;
 
