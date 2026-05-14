@@ -2327,7 +2327,6 @@ async function resumeLiveTest(){
 }
 
 async function discardLiveOnly(){
-  if(!confirm('Discard this live session?')) return;
   // window.storage.delete may not work — overwrite with discarded marker instead
   const marker = JSON.stringify({discarded:true, liveTotal:0});
   try{ if(window.storage) await window.storage.set(LIVE_KEY, marker); }catch(e){}
@@ -2343,7 +2342,6 @@ async function discardLiveOnly(){
 }
 
 async function discardLiveSave(){
-  if(!confirm('Discard this live session and restart from scratch?')) return;
   const marker = JSON.stringify({discarded:true, liveTotal:0});
   try{ if(window.storage) await window.storage.set(LIVE_KEY, marker); }catch(e){}
   try{ localStorage.setItem(LIVE_KEY, marker); }catch(e){}
@@ -2357,7 +2355,6 @@ async function discardLiveSave(){
 }
 
 async function restartLiveTest(){
-  if(!confirm('Restart this live session from the beginning?')) return;
   const subject = liveSubject;
   const grade = liveGrade;
   const marker = JSON.stringify({discarded:true, liveTotal:0});
