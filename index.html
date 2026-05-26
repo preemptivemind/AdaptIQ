@@ -1542,8 +1542,16 @@ function beginTest(){
   const quota = demoMode ? DEMO_QUOTA[selectedSubject] : QUOTA[selectedSubject];
   // Set total questions: math = 4×15 = 60, reading = 2×15 = 30
   TOTAL_Q = Object.values(quota).reduce((a,b)=>a+b,0);
-  domainLevels={}; domainCorrect={};
-  defs.forEach(d=>{domainLevels[d.key]=startLevel; domainCorrect[d.key]=0; domainMastery[d.key]=0; gradeStats[d.key]={}; gradeStatsDiff[d.key]={};});
+  domainLevels={}; domainCorrect={}; domainTheta={}; domainSE={}; domainResponses={}; domainItems={};
+  defs.forEach(d=>{
+    domainLevels[d.key]=startLevel;
+    domainCorrect[d.key]=0; domainMastery[d.key]=0;
+    gradeStats[d.key]={}; gradeStatsDiff[d.key]={};
+    domainTheta[d.key]=gradeToTheta(startLevel);
+    domainSE[d.key]=1.5;
+    domainResponses[d.key]=[];
+    domainItems[d.key]=[];
+  });
 
   // Build interleaved queue
   domainQueue=[];
@@ -1565,20 +1573,12 @@ function diffFromLevel(level){
 }
 
 function getNextQuestion(domain){
-  const pool=QBANK[selectedSubject].filter(q=>q.domain===domain);
-  const lv=domainLevels[domain];
-  const tg=Math.round(Math.max(0,Math.min(12,lv)));
-  const td=diffFromLevel(lv);
-  const dp=td==='easy'?['easy','medium','hard']:td==='hard'?['hard','medium','easy']:['medium','easy','hard'];
-  for(let r=0;r<=12;r++){
-    for(const g of [...new Set([tg,tg-r,tg+r])].filter(x=>x>=0&&x<=12)){
-      for(const d of dp){
-        const c=pool.filter(q=>q.grade===g&&q.diff===d&&!usedTexts.has(q.text));
-        if(c.length) return shuffle(c)[0];
-      }
-    }
-  }
-  return null;
+  const pool = QBANK[selectedSubject]
+    .filter(q => q.domain===domain && !usedTexts.has(q.text));
+  if(!pool.length) return null;
+  // IRT: select item maximising Fisher information at current θ estimate
+  const theta = domainTheta[domain];
+  return irtSelectItem(theta, pool);
 }
 
 function renderQuestion(){
@@ -1670,13 +1670,18 @@ function nextQuestion(){
     // idk counts as wrong for scoring and adaptive level
     wrongCount++;
   }
-  // Adaptive engine: step size depends on mode (demo = larger steps for faster adaptation)
-  const step = demoMode ? 0.7 : 0.3;
-  if(isCorrect){
-    domainLevels[domain]=Math.min(12.9, domainLevels[domain]+step);
-  } else {
-    domainLevels[domain]=Math.max(0, domainLevels[domain]-step);
-  }
+  // IRT EAP: update theta estimate for this domain
+  const irtResp = domainResponses[domain];
+  const irtItms = domainItems[domain];
+  const {a:qa,b:qb,c:qc} = irtParams(currentQ.grade, currentQ.diff);
+  irtResp.push(isCorrect?1:0);
+  irtItms.push({a:qa,b:qb,c:qc});
+  const startTheta = gradeToTheta(Math.min(selectedGrade+1,12));
+  const {theta:newTheta, se:newSE} = irtEAP(irtResp, irtItms, startTheta, 1.5);
+  domainTheta[domain] = newTheta;
+  domainSE[domain] = newSE;
+  // Keep domainLevels in sync for compatibility with reporting functions
+  domainLevels[domain] = Math.max(0, Math.min(12.9, thetaToGrade(newTheta)));
   history.push({
     correct:isCorrect,idk:isIdk,domain,
     grade:currentQ.grade,diff:currentQ.diff,ccss:currentQ.ccss,
@@ -1687,6 +1692,61 @@ function nextQuestion(){
   domainQueueIdx++;qIndex++;
   saveSession();
   renderQuestion();
+}
+
+
+// ═══════════════════════════════════════════════════════════════════
+//  IRT — 3-Parameter Logistic Model with EAP Estimation
+// ═══════════════════════════════════════════════════════════════════
+// θ scale: grade 0 = θ −3, grade 6 = θ 0, grade 12 = θ +3
+// b = (grade − 6) / 2
+// a: easy=0.8, medium=1.2, hard=1.6
+// c: easy=0.25, medium=0.22, hard=0.18
+
+function gradeToTheta(grade){ return (grade - 6) / 2; }
+function thetaToGrade(theta){ return theta * 2 + 6; }
+
+function irtP(theta, a, b, c){
+  return c + (1 - c) / (1 + Math.exp(-a * (theta - b)));
+}
+function irtInfo(theta, a, b, c){
+  const p = irtP(theta, a, b, c), q = 1 - p;
+  return (a*a * Math.pow(p-c, 2) * q) / (Math.max(1e-9, Math.pow(1-c,2)) * Math.max(1e-9, p));
+}
+function irtParams(grade, diff){
+  return {
+    b: gradeToTheta(grade),
+    a: diff==='easy'?0.8:diff==='hard'?1.6:1.2,
+    c: diff==='easy'?0.25:diff==='hard'?0.18:0.22
+  };
+}
+// Quadrature points for EAP: -4 to +4 step 0.1
+const IRT_QUAD = Array.from({length:81},(_,i)=>-4+i*0.1);
+function normalPdf(x,mu=0,sg=1){ return Math.exp(-0.5*((x-mu)/sg)**2)/(sg*Math.sqrt(2*Math.PI)); }
+function irtEAP(responses, items, pMu=0, pSg=1){
+  const W = IRT_QUAD.map(t=>{
+    let w = normalPdf(t, pMu, pSg);
+    responses.forEach((r,i)=>{
+      const {a,b,c}=items[i];
+      const p=Math.max(1e-9,Math.min(1-1e-9,irtP(t,a,b,c)));
+      w *= r?p:(1-p);
+    });
+    return w;
+  });
+  const tot = W.reduce((s,w)=>s+w,0);
+  if(tot<1e-300) return {theta:pMu, se:pSg};
+  const th = IRT_QUAD.reduce((s,t,i)=>s+t*W[i],0)/tot;
+  const se = Math.sqrt(Math.max(1e-9, IRT_QUAD.reduce((s,t,i)=>s+(t-th)**2*W[i],0)/tot));
+  return {theta:th, se};
+}
+function irtSelectItem(theta, pool){
+  let best=null, bestI=-1;
+  for(const q of pool){
+    const {a,b,c}=irtParams(q.grade,q.diff);
+    const inf=irtInfo(theta,a,b,c);
+    if(inf>bestI){bestI=inf;best=q;}
+  }
+  return best;
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -2020,6 +2080,7 @@ function retakeTest(){document.getElementById('progress-bar-wrap').style.display
 //  LIVE TEST MODE
 // ═══════════════════════════════════════════════════════════════════
 let liveSubject=null, liveGrade=null;
+let liveDomainTheta={}, liveDomainSE={}, liveDomainResponses={}, liveDomainItems={};
 let liveDomainLevels={}, liveDomainMastery={}, liveGradeStats={}, liveDomainCorrect={};
 let liveDomainHistory={};
 let liveDomainQueue=[], liveDomainQueueIdx=0;
@@ -2045,6 +2106,10 @@ function startLiveTest(subject){
     liveGradeStats[d.key]={};
     liveDomainCorrect[d.key]=0;
     liveDomainHistory[d.key]=[];
+    liveDomainTheta[d.key]=gradeToTheta(Math.min(grade+1,12));
+    liveDomainSE[d.key]=1.5;
+    liveDomainResponses[d.key]=[];
+    liveDomainItems[d.key]=[];
   });
   liveCorrect=0; liveWrong=0; liveSkip=0; liveTotal=0;
   liveStreak=0; liveStreakHistory=[];
@@ -2075,14 +2140,10 @@ function liveGetDomain(){
 
 function liveRenderQuestion(){
   const domain=liveGetDomain();
-  const level=liveDomainLevels[domain];
-  const targetGrade=Math.round(Math.max(0,Math.min(12,level)));
   const pool=QBANK[liveSubject].filter(q=>q.domain===domain && !liveUsedTexts.has(q.text));
-  // Pick question closest to target grade
-  const sorted=pool.slice().sort((a,b)=>Math.abs(a.grade-targetGrade)-Math.abs(b.grade-targetGrade));
-  // Pick one of the top 5 randomly for variety
-  const candidates=sorted.slice(0,Math.min(5,sorted.length));
-  liveQ=candidates[Math.floor(Math.random()*candidates.length)];
+  if(!pool.length){ liveUsedTexts=new Set(); liveRenderQuestion(); return; }
+  // IRT: select item maximising Fisher information at current θ
+  liveQ = irtSelectItem(liveDomainTheta[domain]||gradeToTheta(liveDomainLevels[domain]||6), pool);
   if(!liveQ){ liveUsedTexts=new Set(); liveRenderQuestion(); return; }
   liveUsedTexts.add(liveQ.text);
 
@@ -2153,27 +2214,34 @@ function liveNext(){
   liveGradeStats[domain][qGrade].t++;
   // Track sliding window history for reported level
   if(!liveDomainHistory[domain]) liveDomainHistory[domain]=[];
-  // Adaptive engine: gentle ±0.3 step for smooth question targeting
+  // IRT EAP: update theta for this domain
+  if(!liveDomainResponses[domain]) liveDomainResponses[domain]=[];
+  if(!liveDomainItems[domain]) liveDomainItems[domain]=[];
+  const {a:lva,b:lvb,c:lvc}=irtParams(liveQ.grade, liveQ.diff);
+  liveDomainResponses[domain].push(isCorrect?1:0);
+  liveDomainItems[domain].push({a:lva,b:lvb,c:lvc});
+  const liveStartTheta=gradeToTheta(Math.min(liveGrade+1,12));
+  const {theta:lvTheta,se:lvSE}=irtEAP(liveDomainResponses[domain],liveDomainItems[domain],liveStartTheta,1.5);
+  liveDomainTheta[domain]=lvTheta;
+  liveDomainSE[domain]=lvSE;
+  liveDomainLevels[domain]=Math.max(0,Math.min(12.9,thetaToGrade(lvTheta)));
+  if(!liveDomainHistory[domain]) liveDomainHistory[domain]=[];
   if(isCorrect){
     liveCorrect++; liveDomainCorrect[domain]++;
     liveGradeStats[domain][qGrade].r++;
     liveDomainHistory[domain].push({grade:qGrade,correct:true});
-    liveDomainLevels[domain]=Math.min(12.9, liveDomainLevels[domain]+0.3);
     liveStreak++;
     liveStreakHistory.push('c');
   } else if(isIdk){
-    // idk = wrong: same effect on scoring and adaptive level, just labelled differently
     liveWrong++;liveSkip++;
     liveStreak=0;
     liveStreakHistory.push('w');
     liveDomainHistory[domain].push({grade:qGrade,correct:false});
-    liveDomainLevels[domain]=Math.max(0, liveDomainLevels[domain]-0.3);
   } else {
     liveWrong++;
     liveStreak=0;
     liveStreakHistory.push('w');
     liveDomainHistory[domain].push({grade:qGrade,correct:false});
-    liveDomainLevels[domain]=Math.max(0, liveDomainLevels[domain]-0.3);
   }
   // Show feedback if not already shown (idk already shows it)
   if(!isIdk){
@@ -2288,6 +2356,7 @@ async function liveSaveState(){
     liveSubject,liveGrade,
     liveDomainLevels,liveDomainMastery,liveGradeStats,liveDomainCorrect,
     liveDomainQueue,liveDomainQueueIdx,
+    liveDomainTheta,liveDomainSE,liveDomainResponses,liveDomainItems,
     liveCorrect,liveWrong,liveSkip,liveTotal,
     liveDomainHistory,liveStreak,liveStreakHistory,
     savedAt:Date.now()
@@ -2327,6 +2396,10 @@ async function resumeLiveTest(){
   liveDomainCorrect=s.liveDomainCorrect||{};
   liveDomainQueue=s.liveDomainQueue||[];
   liveDomainQueueIdx=s.liveDomainQueueIdx||0;
+  liveDomainTheta=s.liveDomainTheta||{};
+  liveDomainSE=s.liveDomainSE||{};
+  liveDomainResponses=s.liveDomainResponses||{};
+  liveDomainItems=s.liveDomainItems||{};
   liveDomainHistory=s.liveDomainHistory||{};
   liveCorrect=s.liveCorrect||0; liveWrong=s.liveWrong||0;
   liveSkip=s.liveSkip||0; liveTotal=s.liveTotal||0;
@@ -2346,6 +2419,7 @@ async function discardLiveOnly(){
   // Reset in-memory state
   liveSubject=null; liveGrade=null;
   liveDomainLevels={}; liveDomainMastery={}; liveGradeStats={}; liveDomainCorrect={};
+  liveDomainTheta={}; liveDomainSE={}; liveDomainResponses={}; liveDomainItems={};
   liveDomainQueue=[]; liveDomainQueueIdx=0; liveDomainHistory={};
   liveCorrect=0; liveWrong=0; liveSkip=0; liveTotal=0;
   liveStreak=0; liveStreakHistory=[];
@@ -2772,4 +2846,4 @@ function gradeToLexile(grade){
 }
 </script>
 </body>
-</html>
+</html>s
